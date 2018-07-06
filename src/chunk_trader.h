@@ -36,6 +36,10 @@
 
 struct chunk_trader;
 
+int chunk_trader_getMyFlowid (struct chunk_trader *ct);
+
+int chunk_trader_getDataMyflowid (struct chunk_trader *ct);
+
 struct chunk_trader * chunk_trader_create(const struct psinstance *ps, const char *config);
 
 void chunk_trader_destroy(struct chunk_trader **ct);

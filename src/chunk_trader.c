@@ -35,6 +35,14 @@ struct chunk_trader{
 	int chunks_per_peer_offer;
 };
 
+int chunk_trader_getMyFlowid (struct chunk_trader *ct) {
+	return ct->my_flowid;
+}
+
+int chunk_trader_getDataMyflowid (struct chunk_trader *ct) {
+	return (ct->my_flowid == 9999) ? 1 : ct->my_flowid + 1;
+}
+
 int chunk_trader_buffer_size(const struct chunk_trader *ct)
 {
 	return ct->cb_size;

@@ -242,6 +242,55 @@ int8_t psinstance_inject_chunk(struct psinstance * ps)
 	return res;
 }
 
+int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_t data_size)
+{
+	struct chunk * new_chunk;
+	int8_t res = 0;
+
+	if (ps)
+	{
+		new_chunk = malloc(sizeof(struct chunk));
+		if (!new_chunk) {
+			fprintf(stderr, "Memory allocation error!\n");
+			return NULL;
+		}
+		memset(new_chunk, 0, sizeof(struct chunk));
+		
+		if(new_chunk) 
+		{
+			dtprintf("New chunk\n");
+			new_chunk->id = ps->id_data;
+			new_chunk->size = data_size;
+			new_chunk->data = malloc(data_size);
+			memcpy(new_chunk->data, data, data_size);
+			new_chunk->timestamp = 0; //?????
+			new_chunk->flow_id = chunk_trader_get_data_flowid(ps->trader);
+			new_chunk->chunk_type = DATA_TYPE;
+
+			chunk_attributes_init(new_chunk);
+
+			ps->id_data++;
+
+			dtprintf("New chunk ready ok\n");
+
+			if(!chunk_trader_add_chunk(ps->trader, new_chunk))
+			{
+				dtprintf("Chunk added ok\n");
+				chunk_trader_push_chunk(ps->trader, new_chunk, ps->source_multiplicity);
+				dtprintf("Chunk pushed ok\n");
+				free(new_chunk);
+			}
+			else
+				chunk_destroy(&new_chunk);
+		}
+		else
+			res = -1;
+	} else
+		res = 1;
+	return res;
+
+}
+
 int8_t psinstance_handle_msg(struct psinstance * ps)
 	/* WARNING: this is a blocking function on the network socket */
 {
