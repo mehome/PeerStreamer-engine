@@ -47,6 +47,7 @@ struct psinstance {
 	struct streaming_timers timers;
 	char * iface;
 	int port;
+	int id_data;
 	suseconds_t chunk_time_interval; // microseconds
 	suseconds_t chunk_offer_interval; // microseconds
 	int source_multiplicity;
@@ -224,9 +225,10 @@ int8_t psinstance_inject_chunk(struct psinstance * ps)
 
 	if (ps)
 	{
-		new_chunk = input_chunk(ps->input, &(ps->chunk_time_interval));
+		new_chunk = input_chunk(ps->input, &(ps->chunk_time_interval));		
 		if(new_chunk) 
 		{
+			//new_chunk->flow_id = chunk_trader_getMyFlowid(ps->trader);
 			if(!chunk_trader_add_chunk(ps->trader, new_chunk))
 			{
 				chunk_trader_push_chunk(ps->trader, new_chunk, ps->source_multiplicity);
@@ -264,7 +266,7 @@ int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_
 			new_chunk->data = malloc(data_size);
 			memcpy(new_chunk->data, data, data_size);
 			new_chunk->timestamp = 0; //?????
-			new_chunk->flow_id = chunk_trader_get_data_flowid(ps->trader);
+			new_chunk->flow_id = chunk_trader_getDataMyflowid(ps->trader);
 			new_chunk->chunk_type = DATA_TYPE;
 
 			chunk_attributes_init(new_chunk);
@@ -355,7 +357,6 @@ int psinstance_poll(struct psinstance *ps, suseconds_t delta)
 		streaming_timers_set_timeout(&ps->timers, delta, ps->inc.fds[0] == -1);
 		dtprintf("[DEBUG] timer: %lu %lu\n", ps->timers.sleep_timer.tv_sec, ps->timers.sleep_timer.tv_usec); 
 		data_state = wait4data(ps->my_sock, &(ps->timers.sleep_timer), ps->inc.fds);
-
 		required_action = streaming_timers_state_handler(&ps->timers, data_state);
 		
                 switch (required_action) {
