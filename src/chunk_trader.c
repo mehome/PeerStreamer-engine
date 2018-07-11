@@ -149,6 +149,7 @@ int8_t peer_chunk_send(struct chunk_trader * ct, struct PeerChunk *pairs, int pa
 
 			log_chunk(psinstance_nodeid(ct->ps), target_peer->id, target_chunk, "SENT");
 #endif
+			cb_ack_expect(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id);
 		} 
 	}
 
@@ -482,6 +483,22 @@ int8_t chunk_trader_handle_ack(struct chunk_trader *ct, struct peer *p, struct c
         gettimeofday(peer_bmap_timestamp(p), NULL);
 
 	transaction_remove(&(ct->transactions), transid);
+
+	int flows_size = 0;
+	int * flows = chunkID_multiSet_get_flows(cset, &flows_size);
+	struct chunk_buffer * cb = NULL;
+	for(int i=0; i<flows_size; i++) {
+		cb = get_chunkbuffer(ct, flows[i]);
+		if(cb) {
+			int elements_size = 0;
+			int * elements = chunkID_multiSet_get_elements(cset, flows[i], &elements_size);
+			for(int c=0; c<elements_size; c++) {
+				cb_ack_received(cb, elements[c]);
+			}
+		}
+		
+	}
+	
 	return 0;
 }
 
