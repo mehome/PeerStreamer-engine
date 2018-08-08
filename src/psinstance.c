@@ -265,7 +265,7 @@ int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_
 			new_chunk->size = data_size;
 			new_chunk->data = malloc(data_size);
 			memcpy(new_chunk->data, data, data_size);
-			new_chunk->timestamp = 0; //?????
+			new_chunk->timestamp = 1; //?????
 			new_chunk->flow_id = chunk_trader_getDataMyflowid(ps->trader);
 			new_chunk->chunk_type = DATA_TYPE;
 
@@ -370,6 +370,8 @@ int psinstance_poll(struct psinstance *ps, suseconds_t delta)
 			case INJECT_ACTION:
 				dtprintf("Chunk seeding time!\n");
 				psinstance_inject_chunk(ps);
+				uint8_t data = 0;
+				psinstance_inject_data_chunk(ps, &data, sizeof(uint8_t));
 				streaming_timers_update_chunk_time(&ps->timers, ps->chunk_time_interval);
 				break;
 			case PARSE_MSG_ACTION:

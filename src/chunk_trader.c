@@ -115,8 +115,7 @@ int8_t chunk_trader_add_chunk(struct chunk_trader *ct, struct chunk *c)
 	{
                 cb = get_chunkbuffer(ct, c->flow_id);
                 if(cb)
-                {
-                
+                {                
 	        	res = cb_add_chunk(cb, c);
 		        if (res)
 			        log_chunk_error(psinstance_nodeid(ct->ps), NULL, c, res);
@@ -149,7 +148,9 @@ int8_t peer_chunk_send(struct chunk_trader * ct, struct PeerChunk *pairs, int pa
 
 			log_chunk(psinstance_nodeid(ct->ps), target_peer->id, target_chunk, "SENT");
 #endif
-			cb_ack_expect(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id);
+			cb_ack_expect(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id, target_peer);
+			
+			//cb_ack_received(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id, target_peer); //test
 		} 
 	}
 
@@ -492,11 +493,10 @@ int8_t chunk_trader_handle_ack(struct chunk_trader *ct, struct peer *p, struct c
 		if(cb) {
 			int elements_size = 0;
 			int * elements = chunkID_multiSet_get_elements(cset, flows[i], &elements_size);
-			for(int c=0; c<elements_size; c++) {
-				cb_ack_received(cb, elements[c]);
+			for(int c=0; c<elements_size; c++) {				
+				//cb_ack_received(cb, elements[c], p);
 			}
 		}
-		
 	}
 	
 	return 0;
