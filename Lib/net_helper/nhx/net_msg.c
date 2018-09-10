@@ -21,6 +21,7 @@
 #include<net_msg.h>
 #include<fragment.h>
 #include<frag_request.h>
+#include<frag_ack.h>
 #include<net_helper.h>
 #include<string.h>
 
@@ -60,6 +61,8 @@ ssize_t net_msg_send(int sockfd, const struct sockaddr *dest_addr, socklen_t add
 			return fragment_send(sockfd, dest_addr, addrlen, (struct fragment*) msg, buff, buff_len);
 		case NET_FRAGMENT_REQ:
 			return frag_request_send(sockfd, dest_addr, addrlen, (struct frag_request*) msg, buff, buff_len);
+		case NET_FRAGMENT_ACK:
+			return frag_ack_send(sockfd, dest_addr, addrlen, (struct frag_ack*) msg, buff, buff_len);
  		default:
  			return -1; 
  	}
@@ -72,6 +75,8 @@ struct net_msg * net_msg_decode(const struct nodeID *dst, const struct nodeID *s
 			return (struct net_msg*) fragment_decode(dst, src, buff, buff_len);
 		case NET_FRAGMENT_REQ:
 			return (struct net_msg*) frag_request_decode(dst, src, buff, buff_len);
+		case NET_FRAGMENT_ACK:
+			return (struct net_msg*) frag_ack_decode(dst, src, buff, buff_len);
  		default:
  			return NULL;
  	}

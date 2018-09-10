@@ -26,16 +26,24 @@
 typedef uint16_t frag_id_t;
 typedef uint16_t packet_id_t;
 
+//typedef enum fragment_type {FRAGMENT_TYPE_NORMAL, FRAGMENT_TYPE_RELIABLE} Fragment_type;
+#define FRAGMENT_TYPE_NORMAL 0
+#define FRAGMENT_TYPE_RELIABLE 1
+typedef uint8_t frag_type;
+
 struct fragment {  // extends net_msg, do not move nm parameter
 	struct net_msg nm;
 	frag_id_t id;
 	frag_id_t frag_num;
 	packet_id_t pid;
+	frag_type type;
 	size_t data_size;
 	uint8_t * data;
 };
 
-int8_t fragment_init(struct fragment * f, const struct nodeID * from, const struct nodeID * to, packet_id_t pid, frag_id_t frag_num, frag_id_t id, const uint8_t * data, size_t data_size, struct list_head * list);
+//int8_t fragment_init(struct fragment * f, const struct nodeID * from, const struct nodeID * to, packet_id_t pid, frag_id_t frag_num, frag_id_t id, const uint8_t * data, size_t data_size, struct list_head * list);
+
+int8_t fragment_init(struct fragment * f, const struct nodeID * from, const struct nodeID * to, packet_id_t pid, frag_id_t frag_num, frag_id_t id, frag_type type, const uint8_t * data, size_t data_size, struct list_head * list);
 
 void fragment_deinit(struct fragment * f);
 

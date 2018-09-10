@@ -17,7 +17,7 @@ void fragment_encode_test()
 	src = create_node("10.0.0.1", 6000);
 	dst = create_node("10.0.0.1", 6020);
 
-	fragment_init(&frag, src, dst, 42, 7, 3, (uint8_t*) "ciao", 5, NULL);
+	fragment_init(&frag, src, dst, 42, 7, 3, FRAGMENT_TYPE_NORMAL, (uint8_t*) "ciao", 5, NULL);
 	res = fragment_encode(&frag, buff, 100);
 	assert(res == 0);
 	

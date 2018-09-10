@@ -144,7 +144,7 @@ packet_state_t packet_bucket_add_fragment(struct packet_bucket *pb, const struct
 		dst = ((struct net_msg *)f)->to;
 		if (fp == NULL)
 		{
-			fp = fragmented_packet_empty(f->pid, src, dst, f->frag_num);
+			fp = fragmented_packet_empty(f->pid, src, dst, f->frag_num, f->type);
 			ord_set_insert(pb->packet_set, fp, 0);
 			list_add_tail(&(fp->list), &(pb->packet_list));
 		}

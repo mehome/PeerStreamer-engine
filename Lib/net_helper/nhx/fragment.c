@@ -26,6 +26,7 @@
 // #define FRAGMENT_HEADER_LEN (sizeof(net_msg_t) + sizeof(packet_id_t) + sizeof(frag_id_t) + sizeof(frag_id_t) + sizeof(size_t))
 #define FRAGMENT_HEADER_LEN (1 + 2 + 2 + 2 + 4)
 
+/* PREV
 int8_t fragment_init(struct fragment * f, const struct nodeID * from, const struct nodeID * to, packet_id_t pid, frag_id_t frag_num, frag_id_t id, const uint8_t * data, size_t data_size, struct list_head * list)
 {
 	int8_t res = -1;
@@ -45,6 +46,33 @@ int8_t fragment_init(struct fragment * f, const struct nodeID * from, const stru
 			f->id = id;
 			f->pid = pid;
 			f->frag_num = frag_num;
+			f->type = FRAGMENT_TYPE_NORMAL;
+		}
+	}
+
+	return res;
+} */
+
+int8_t fragment_init(struct fragment * f, const struct nodeID * from, const struct nodeID * to, packet_id_t pid, frag_id_t frag_num, frag_id_t id, frag_type type, const uint8_t * data, size_t data_size, struct list_head * list)
+{
+	int8_t res = -1;
+
+	if (f && from && to)
+	{
+		res = net_msg_init((struct net_msg *) f, NET_FRAGMENT, from, to, list);
+		if (res == 0)
+		{
+			f->data_size = data_size;
+			if (data)
+			{
+				f->data = malloc(sizeof(uint8_t) * data_size);
+				memmove(f->data, data, f->data_size);
+			} else
+				f->data = NULL;
+			f->id = id;
+			f->pid = pid;
+			f->frag_num = frag_num;
+			f->type = type;
 		}
 	}
 
@@ -87,6 +115,8 @@ int8_t fragment_encode(struct fragment * frag, uint8_t * buff, size_t buff_len)
 		ptr += 2;
 		int16_cpy(ptr, frag->id);
 		ptr += 2;
+		int8_cpy(ptr, frag->type);
+		ptr += 1;
 		int_cpy(ptr, frag->data_size);
 		ptr += 4;
 		memmove(ptr, frag->data, frag->data_size);
@@ -119,6 +149,7 @@ struct fragment * fragment_decode(const struct nodeID *dst, const struct nodeID 
 	const uint8_t * ptr;
 	packet_id_t pid;
 	frag_id_t fid, frag_num;
+	frag_type type;
 	size_t data_len;
 
 	if (dst && src && buff && buff_len >= FRAGMENT_HEADER_LEN)
@@ -130,13 +161,15 @@ struct fragment * fragment_decode(const struct nodeID *dst, const struct nodeID 
 		ptr = ptr + 2;
 		fid = int16_rcpy(ptr);
 		ptr = ptr + 2;
+		type = int8_rcpy(ptr);
+		ptr = ptr + 1;
 		data_len = int_rcpy(ptr);
 		ptr = ptr + 4;
 
 		if (buff_len >= FRAGMENT_HEADER_LEN + data_len)
 		{
 			msg = malloc(sizeof(struct fragment));
-			fragment_init(msg, src, dst, pid, frag_num, fid, ptr, data_len, NULL);
+			fragment_init(msg, src, dst, pid, frag_num, fid, type, ptr, data_len, NULL);
 		}
 	}
 

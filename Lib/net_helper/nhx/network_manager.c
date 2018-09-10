@@ -24,12 +24,14 @@
 #include<ord_set.h>
 #include<grapes_config.h>
 #include<frag_request.h>
+#include<frag_ack.h>
 
 #define DEFAULT_PKT_MAX_AGE 4
 
 
 struct network_manager {
 	struct list_head outqueue;
+	struct list_head outqueue_reliable;
 	struct ord_set * endpoints;
 	size_t frag_size;
 	uint16_t max_pkt_age; // in seconds
@@ -93,6 +95,20 @@ void network_manager_print_outqueue(const struct network_manager *nm)
 
 	fprintf(stderr, "=== Outqueue ===\n");
 	list_for_each(pos, &(nm->outqueue))
+	{	
+		msg = (struct fragment *) list_entry(pos, struct net_msg, list);
+		fprintf(stderr, "%d) frag_id = %d\n", i++, msg->id); 
+	}
+}
+
+void network_manager_print_outqueue_reliable(const struct network_manager *nm)
+{
+	struct list_head * pos;
+	struct fragment * msg;
+	uint16_t i=0;
+
+	fprintf(stderr, "=== Outqueue reliable ===\n");
+	list_for_each(pos, &(nm->outqueue_reliable))
 	{	
 		msg = (struct fragment *) list_entry(pos, struct net_msg, list);
 		fprintf(stderr, "%d) frag_id = %d\n", i++, msg->id); 

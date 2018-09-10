@@ -61,7 +61,7 @@ struct fragmented_packet * fragmented_packet_create(packet_id_t id, const struct
 		fp->frags = malloc(sizeof(struct fragment) * fp->frag_num);
 		for (i = 0; i < fp->frag_num; i++)
 		{
-			fragment_init(&(fp->frags[i]), from, to, id, fp->frag_num, i, data+(i*frag_size), MIN(frag_size, data_size), msgs);
+			fragment_init(&(fp->frags[i]), from, to, id, fp->frag_num, i, FRAGMENT_TYPE_NORMAL, data+(i*frag_size), MIN(frag_size, data_size), msgs);
 			data_ptr += frag_size; 
 			data_size -= frag_size;
 		}
@@ -83,7 +83,7 @@ void fragmented_packet_destroy(struct fragmented_packet ** fp)
 	}
 }
 
-struct fragmented_packet * fragmented_packet_empty(packet_id_t pid, const struct nodeID *from, const struct nodeID *to, frag_id_t num_frags)
+struct fragmented_packet * fragmented_packet_empty(packet_id_t pid, const struct nodeID *from, const struct nodeID *to, frag_id_t num_frags, frag_type type)
 {
 	struct fragmented_packet * fp = NULL;
 	frag_id_t i;
@@ -95,7 +95,7 @@ struct fragmented_packet * fragmented_packet_empty(packet_id_t pid, const struct
 	fp->frag_num = num_frags;
 	fp->frags = malloc(sizeof(struct fragment) * fp->frag_num);
 	for (i = 0; i < fp->frag_num; i++)
-		fragment_init(&(fp->frags[i]), from, to, pid, fp->frag_num, i, NULL, 0, NULL);
+		fragment_init(&(fp->frags[i]), from, to, pid, fp->frag_num, i, type, NULL, 0, NULL);
 	return fp;
 }
 
@@ -132,7 +132,7 @@ packet_state_t fragmented_packet_write_fragment(struct fragmented_packet *fp, co
 		fragment_deinit(nf);
 		from = ((struct net_msg*)f)->from;
 		to = ((struct net_msg*)f)->to;
-		fragment_init(nf, from, to, f->pid, f->frag_num, f->id, f->data, f->data_size, NULL);
+		fragment_init(nf, from, to, f->pid, f->frag_num, f->id, f->type, f->data, f->data_size, NULL);
 		res = fragmented_packet_state(fp, from, to, requests);
 	}
 	return res;

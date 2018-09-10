@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "frag_ack.h": "c",
+        "frag_request.h": "c",
+        "net_helper.h": "c",
+        "net_msg.h": "c",
+        "fragment.h": "c"
+    }
+}

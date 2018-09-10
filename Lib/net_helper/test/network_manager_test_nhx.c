@@ -110,21 +110,21 @@ void network_manager_add_incoming_fragment_test()
 	msg = network_manager_pop_outgoing_net_msg(nm);
 	assert(msg == NULL);
 
-	fragment_init(&f, src, dst, 0, 2, 0, (uint8_t *)"ci", 2, NULL);
+	fragment_init(&f, src, dst, 0, 2, 0, FRAGMENT_TYPE_NORMAL, (uint8_t *)"ci", 2, NULL);
 	res = network_manager_add_incoming_fragment(nm, &f);
 	assert(res == PKT_LOADING);
 	msg = network_manager_pop_outgoing_net_msg(nm);
 	assert(msg == NULL);
 	fragment_deinit(&f);
 
-	fragment_init(&f, src, dst, 0, 2, 1, (uint8_t *)"ao", 3, NULL);
+	fragment_init(&f, src, dst, 0, 2, 1, FRAGMENT_TYPE_NORMAL, (uint8_t *)"ao", 3, NULL);
 	res = network_manager_add_incoming_fragment(nm, &f);
 	assert(res == PKT_READY);
 	msg = network_manager_pop_outgoing_net_msg(nm);
 	assert(msg == NULL);
 	fragment_deinit(&f);
 	
-	fragment_init(&f, src, dst, 1, 2, 1, (uint8_t *)"foo", 3, NULL);
+	fragment_init(&f, src, dst, 1, 2, 1, FRAGMENT_TYPE_NORMAL, (uint8_t *)"foo", 3, NULL);
 	res = network_manager_add_incoming_fragment(nm, &f);
 	assert(res == PKT_LOADING);
 	msg = network_manager_pop_outgoing_net_msg(nm);
@@ -135,7 +135,7 @@ void network_manager_add_incoming_fragment_test()
 	frag_request_destroy(&fr);
 	fragment_deinit(&f);
 	
-	fragment_init(&f, src, dst, 1, 2, 0, (uint8_t *)"bar", 4, NULL);
+	fragment_init(&f, src, dst, 1, 2, 0,FRAGMENT_TYPE_NORMAL, (uint8_t *)"bar", 4, NULL);
 	res = network_manager_add_incoming_fragment(nm, &f);
 	assert(res == PKT_READY);
 	msg = network_manager_pop_outgoing_net_msg(nm);
@@ -161,21 +161,21 @@ void network_manager_add_redundant_fragment_test()
 
 	nm = network_manager_create(NULL);
 
-	fragment_init(&f, src, dst, 0, 2, 0, (uint8_t *)"ci", 2, NULL);
+	fragment_init(&f, src, dst, 0, 2, 0, FRAGMENT_TYPE_NORMAL, (uint8_t *)"ci", 2, NULL);
 	res = network_manager_add_incoming_fragment(nm, &f);
 	assert(res == PKT_LOADING);
 	msg = network_manager_pop_outgoing_net_msg(nm);
 	assert(msg == NULL);
 	fragment_deinit(&f);
 
-	fragment_init(&f, src, dst, 0, 2, 0, (uint8_t *)"ci", 2, NULL);
+	fragment_init(&f, src, dst, 0, 2, 0, FRAGMENT_TYPE_NORMAL, (uint8_t *)"ci", 2, NULL);
 	res = network_manager_add_incoming_fragment(nm, &f);
 	assert(res == PKT_LOADING);
 	msg = network_manager_pop_outgoing_net_msg(nm);
 	assert(msg == NULL);
 	fragment_deinit(&f);
 
-	fragment_init(&f, src, dst, 0, 2, 1, (uint8_t *)"ao", 3, NULL);
+	fragment_init(&f, src, dst, 0, 2, 1, FRAGMENT_TYPE_NORMAL, (uint8_t *)"ao", 3, NULL);
 	res = network_manager_add_incoming_fragment(nm, &f);
 	assert(res == PKT_READY);
 	msg = network_manager_pop_outgoing_net_msg(nm);
@@ -218,11 +218,11 @@ void network_manager_pop_incoming_packet_test()
 	res = network_manager_pop_incoming_packet(nm, src, 0, buff, &size);
 	assert(res < 0);
 
-	fragment_init(&f, src, dst, 0, 2, 0, (uint8_t *)"ci", 2, NULL);
+	fragment_init(&f, src, dst, 0, 2, 0, FRAGMENT_TYPE_NORMAL, (uint8_t *)"ci", 2, NULL);
 	network_manager_add_incoming_fragment(nm, &f);
 	fragment_deinit(&f);
 
-	fragment_init(&f, src, dst, 0, 2, 1, (uint8_t *)"ao", 3, NULL);
+	fragment_init(&f, src, dst, 0, 2, 1, FRAGMENT_TYPE_NORMAL, (uint8_t *)"ao", 3, NULL);
 	network_manager_add_incoming_fragment(nm, &f);
 	fragment_deinit(&f);
 
@@ -231,7 +231,7 @@ void network_manager_pop_incoming_packet_test()
 	assert(size == 5);
 	assert(strcmp("ciao", (char *)buff) == 0);
 
-	fragment_init(&f, src, dst, 1, 20, 0, (uint8_t *)"foo", 4, NULL);
+	fragment_init(&f, src, dst, 1, 20, 0, FRAGMENT_TYPE_NORMAL, (uint8_t *)"foo", 4, NULL);
 	network_manager_add_incoming_fragment(nm, &f);
 	fragment_deinit(&f);
 
@@ -295,14 +295,14 @@ void network_manager_pkt_expiring_test()
 	src = create_node("10.0.0.1", 6000);
 	dst = create_node("10.0.0.2", 6000);
 
-	fragment_init(&f, src, dst, 0, 2, 0, (uint8_t *)"ci", 2, NULL);
+	fragment_init(&f, src, dst, 0, 2, 0, FRAGMENT_TYPE_NORMAL, (uint8_t *)"ci", 2, NULL);
 	res = network_manager_add_incoming_fragment(nm, &f);
 	fragment_deinit(&f);
 	assert(res == PKT_LOADING);
 
 	sleep(1);
 
-	fragment_init(&f, src, dst, 0, 2, 1, (uint8_t *)"ao", 3, NULL);
+	fragment_init(&f, src, dst, 0, 2, 1, FRAGMENT_TYPE_NORMAL, (uint8_t *)"ao", 3, NULL);
 	res = network_manager_add_incoming_fragment(nm, &f);
 	fragment_deinit(&f);
 	assert(res == PKT_LOADING);
