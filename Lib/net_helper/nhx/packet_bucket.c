@@ -62,7 +62,7 @@ void packet_bucket_periodic_refresh(struct packet_bucket * pb)
 	}
 }
 
-struct list_head * packet_bucket_add_packet(struct packet_bucket * pb, const struct nodeID * src, const struct nodeID *dst, packet_id_t pid, const uint8_t *data, size_t data_len)
+struct list_head * packet_bucket_add_packet(struct packet_bucket * pb, const struct nodeID * src, const struct nodeID *dst, packet_id_t pid, const uint8_t *data, size_t data_len, frag_type type)
 {
 	struct fragmented_packet * fp;
 	void * insert_res;
@@ -73,7 +73,7 @@ struct list_head * packet_bucket_add_packet(struct packet_bucket * pb, const str
 		res = malloc(sizeof(struct list_head));
 		INIT_LIST_HEAD(res);
 		packet_bucket_periodic_refresh(pb);
-		fp = fragmented_packet_create(pid, src, dst, data, data_len, pb->frag_size, res);
+		fp = fragmented_packet_create(pid, src, dst, data, data_len, pb->frag_size, type, res);
 		insert_res = ord_set_insert(pb->packet_set, fp, 0);
 		if (fp == insert_res)
 			list_add_tail(&(fp->list), &(pb->packet_list));
@@ -86,6 +86,18 @@ struct list_head * packet_bucket_add_packet(struct packet_bucket * pb, const str
 
 	return res;
 }
+
+struct list_head * packet_bucket_add_packet_normal(struct packet_bucket * pb, const struct nodeID * src, const struct nodeID *dst, packet_id_t pid, const uint8_t *data, size_t data_len)
+{
+	return packet_bucket_add_packet(pb, src, dst, pid, data, data_len, FRAGMENT_TYPE_NORMAL);
+}
+
+struct list_head * packet_bucket_add_packet_reliable(struct packet_bucket * pb, const struct nodeID * src, const struct nodeID *dst, packet_id_t pid, const uint8_t *data, size_t data_len)
+{
+	return packet_bucket_add_packet(pb, src, dst, pid, data, data_len, FRAGMENT_TYPE_RELIABLE);
+}
+
+
 
 int8_t packet_cmp(const void * p1, const void * p2)
 {

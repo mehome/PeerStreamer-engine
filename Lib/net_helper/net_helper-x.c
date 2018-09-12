@@ -300,7 +300,7 @@ int send_to_peer_reliable(const struct nodeID *from, const struct nodeID *to, co
 
 	if (from && from->nm && to && buffer_ptr && buffer_size > 0)
 	{
-		res = network_manager_enqueue_outgoing_packet(from->nm, from, to, buffer_ptr, buffer_size);
+		res = network_manager_enqueue_outgoing_packet_reliable(from->nm, from, to, buffer_ptr, buffer_size);
 		network_shaper_update_bitrate(from->shaper, buffer_size);
 	}
 	return res >= 0 ? buffer_size : res;
@@ -334,6 +334,13 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				}
 				else
 					res = 0;
+
+				if(((struct fragment *)msg)->type == FRAGMENT_TYPE_RELIABLE)
+				{
+					//SEND ACK
+					network_manager_enqueue_outgoing_ack(local->nm, local, node, ((struct fragment *)msg)->pid, ((struct fragment *)msg)->id);
+				}
+
 				fragment_deinit((struct fragment *) msg);
 				free(msg);
 				break;
@@ -344,7 +351,9 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				frag_request_destroy((struct frag_request **)&msg);
 				break;
 
-			case NET_FRAGMENT_ACK: break;
+			case NET_FRAGMENT_ACK:
+				frag_ack_destroy((struct frag_ack **)&msg);
+				break;
 			default:
 				fprintf(stderr, "[ERROR] Received weird message!\n");
 		}

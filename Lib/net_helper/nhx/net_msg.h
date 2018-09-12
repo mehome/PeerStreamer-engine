@@ -31,7 +31,6 @@
 #define NET_FRAGMENT 0
 #define NET_FRAGMENT_REQ 1
 #define NET_FRAGMENT_ACK 2
-#define NET_FRAGMENT_RELIABLE 3
 typedef uint8_t net_msg_t;
 
 struct net_msg {

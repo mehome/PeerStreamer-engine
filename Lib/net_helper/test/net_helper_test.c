@@ -206,6 +206,27 @@ void send_recv_test()
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
+void send_recv_reliable_test()
+{
+	struct nodeID * n1, *n2, *r;
+	char buff[80];
+	char msg[] = "ciao reliable";
+	struct timeval interval;
+
+	n1 = net_helper_init("127.0.0.1", 6000, NULL);
+	n2 = net_helper_init("127.0.0.1", 6001, NULL);
+	send_to_peer_reliable(n1, n2, (uint8_t *)msg, 14);
+	net_helper_periodic(n1, &interval);
+	recv_from_peer(n2, &r, (uint8_t *)buff, 80);
+	assert(strcmp(msg, buff) == 0);
+	assert(nodeid_equal(r, n1));
+
+	net_helper_deinit(n1);
+	net_helper_deinit(n2);
+	nodeid_free(r);
+	fprintf(stderr,"%s successfully passed!\n",__func__);
+}
+
 int main()
 {
 	create_node_test();
@@ -216,5 +237,6 @@ int main()
 	node_addr_test();
 	nodeid_dump_test();
 	send_recv_test();
+	send_recv_reliable_test();
 	return 0;
 }

@@ -38,6 +38,10 @@ void network_manager_destroy(struct network_manager ** nm);
 /***************************Ougoing*********************************/
 int8_t network_manager_enqueue_outgoing_packet(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, const uint8_t * data, size_t data_len);
 
+int8_t network_manager_enqueue_outgoing_packet_reliable(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, const uint8_t * data, size_t data_len);
+
+int8_t network_manager_enqueue_outgoing_ack(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, packet_id_t pid, frag_id_t fid);
+
 struct net_msg * network_manager_pop_outgoing_net_msg(struct network_manager *nm);
 
 int8_t network_manager_outgoing_queue_ready(struct network_manager *nm);

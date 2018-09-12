@@ -31,7 +31,6 @@
 
 struct network_manager {
 	struct list_head outqueue;
-	struct list_head outqueue_reliable;
 	struct ord_set * endpoints;
 	size_t frag_size;
 	uint16_t max_pkt_age; // in seconds
@@ -99,21 +98,7 @@ void network_manager_print_outqueue(const struct network_manager *nm)
 		msg = (struct fragment *) list_entry(pos, struct net_msg, list);
 		fprintf(stderr, "%d) frag_id = %d\n", i++, msg->id); 
 	}
-}
-
-void network_manager_print_outqueue_reliable(const struct network_manager *nm)
-{
-	struct list_head * pos;
-	struct fragment * msg;
-	uint16_t i=0;
-
-	fprintf(stderr, "=== Outqueue reliable ===\n");
-	list_for_each(pos, &(nm->outqueue_reliable))
-	{	
-		msg = (struct fragment *) list_entry(pos, struct net_msg, list);
-		fprintf(stderr, "%d) frag_id = %d\n", i++, msg->id); 
-	}
-}
+} 
 
 int8_t network_manager_enqueue_outgoing_packet(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, const uint8_t * data, size_t data_len)
 {
@@ -141,6 +126,44 @@ int8_t network_manager_enqueue_outgoing_packet(struct network_manager *nm, const
 	return res;
 }
 
+int8_t network_manager_enqueue_outgoing_packet_reliable(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, const uint8_t * data, size_t data_len)
+{
+	int8_t res = -1;
+	struct endpoint * e;
+	struct list_head * frag_list;
+
+	if (nm && dst && data && data_len > 0)
+	{
+		e = ord_set_find(nm->endpoints, &dst);
+		if (!e)
+		{
+			e = endpoint_create(dst, nm->frag_size, nm->max_pkt_age);
+			ord_set_insert(nm->endpoints, (void *)e, 0);
+		}
+		frag_list = endpoint_enqueue_outgoing_packet_reliable(e, src, data, data_len);
+		if (frag_list)
+		{
+			list_splice(frag_list, &(nm->outqueue));
+			free(frag_list);
+			res = 0;
+		}
+	}
+
+	return res;
+}
+
+int8_t network_manager_enqueue_outgoing_ack(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, packet_id_t pid, frag_id_t fid) 
+{
+	// ?
+	struct frag_ack *new_ack;
+	struct list_head *head;
+	INIT_LIST_HEAD(head);
+	new_ack = frag_ack_create(src, dst, pid, fid, head);
+
+	list_splice(head, &(nm->outqueue));
+	free(head);
+}
+
 
 struct net_msg * network_manager_pop_outgoing_net_msg(struct network_manager *nm)
 {
@@ -151,7 +174,9 @@ struct net_msg * network_manager_pop_outgoing_net_msg(struct network_manager *nm
 	{
 		el = list_pop(&(nm->outqueue));
 		if (el)
+		{
 			m = list_entry(el, struct net_msg, list);
+		}			
 	}
 	return m;
 }

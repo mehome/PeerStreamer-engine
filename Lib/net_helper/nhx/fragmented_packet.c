@@ -41,7 +41,7 @@ packet_id_t fragmented_packet_id(const struct fragmented_packet *fp)
 	return 0;
 }
 
-struct fragmented_packet * fragmented_packet_create(packet_id_t id, const struct nodeID * from, const struct nodeID *to, const uint8_t * data, size_t data_size, size_t frag_size, struct list_head * msgs)
+struct fragmented_packet * fragmented_packet_create(packet_id_t id, const struct nodeID * from, const struct nodeID *to, const uint8_t * data, size_t data_size, size_t frag_size, frag_type type, struct list_head * msgs)
 {
 	struct fragmented_packet * fp = NULL;
 	const uint8_t * data_ptr = data;
@@ -59,9 +59,10 @@ struct fragmented_packet * fragmented_packet_create(packet_id_t id, const struct
 		if (data_size % frag_size)
 			fp->frag_num++;
 		fp->frags = malloc(sizeof(struct fragment) * fp->frag_num);
+		fp->type = type;
 		for (i = 0; i < fp->frag_num; i++)
 		{
-			fragment_init(&(fp->frags[i]), from, to, id, fp->frag_num, i, FRAGMENT_TYPE_NORMAL, data+(i*frag_size), MIN(frag_size, data_size), msgs);
+			fragment_init(&(fp->frags[i]), from, to, id, fp->frag_num, i, type, data+(i*frag_size), MIN(frag_size, data_size), msgs);
 			data_ptr += frag_size; 
 			data_size -= frag_size;
 		}

@@ -42,7 +42,7 @@ int8_t frag_ack_encode(struct frag_ack *fr, uint8_t * buff, size_t buff_len)
 	ptr = buff;
 	if (fr && buff && buff_len >= FRAG_ACK_HEADER_LEN)
 	{
-		*((net_msg_t*) ptr) = NET_ACK_REQ;
+		*((net_msg_t*) ptr) = NET_FRAGMENT_ACK;
 		ptr += 1;
 		int16_cpy(ptr, fr->pid);
 		ptr += 2;

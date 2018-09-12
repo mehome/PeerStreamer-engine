@@ -116,7 +116,9 @@ int8_t chunk_trader_add_chunk(struct chunk_trader *ct, struct chunk *c)
                 cb = get_chunkbuffer(ct, c->flow_id);
                 if(cb)
                 {                
+			dprintf("cb_add_chunk\n");
 	        	res = cb_add_chunk(cb, c);
+			dprintf("cb_add_chunk ok\n");
 		        if (res)
 			        log_chunk_error(psinstance_nodeid(ct->ps), NULL, c, res);
 		        res = res < 0 ? -1 : 0;
@@ -148,9 +150,10 @@ int8_t peer_chunk_send(struct chunk_trader * ct, struct PeerChunk *pairs, int pa
 
 			log_chunk(psinstance_nodeid(ct->ps), target_peer->id, target_chunk, "SENT");
 #endif
-			cb_ack_expect(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id, target_peer);
-			
-			//cb_ack_received(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id, target_peer); //test
+			dprintf("target_peer->id: %d \n", target_peer->id);
+			dprintf("target_chunk->id: %d \n", target_chunk->id);
+			cb_ack_expect(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id, target_peer->id);
+			//cb_ack_received(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id, target_peer->id); //test
 		} 
 	}
 
@@ -597,6 +600,8 @@ struct chunk_buffer * get_chunkbuffer(struct chunk_trader * ct, int flowid)
 
   // We didn't find the buffer -> it's a new flow!
   
+	dprintf("Nuovo buffer creato!!! \n");
+
         struct chunk_buffer **new_buffers=NULL;
         char conf[80];
         sprintf(conf, "size=%d", ct->cb_size);

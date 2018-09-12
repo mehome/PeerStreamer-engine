@@ -34,7 +34,15 @@ struct list_head * endpoint_enqueue_outgoing_packet(struct endpoint * e, const s
 {
 	struct list_head * res = NULL;
 	if (e && src && data && data_len > 0)
-		res = packet_bucket_add_packet(e->outgoing, src, e->node, e->out_id++, data, data_len);
+		res = packet_bucket_add_packet_normal(e->outgoing, src, e->node, e->out_id++, data, data_len);
+	return res;
+}
+
+struct list_head * endpoint_enqueue_outgoing_packet_reliable(struct endpoint * e, const struct nodeID * src, const uint8_t * data, size_t data_len)
+{
+	struct list_head * res = NULL;
+	if (e && src && data && data_len > 0)
+		res = packet_bucket_add_packet_reliable(e->outgoing, src, e->node, e->out_id++, data, data_len);
 	return res;
 }
 

@@ -4,6 +4,10 @@
         "frag_request.h": "c",
         "net_helper.h": "c",
         "net_msg.h": "c",
-        "fragment.h": "c"
+        "fragment.h": "c",
+        "type_traits": "cpp",
+        "fragmented_packet.h": "c",
+        "packet_bucket.h": "c",
+        "network_manager.h": "c"
     }
 }

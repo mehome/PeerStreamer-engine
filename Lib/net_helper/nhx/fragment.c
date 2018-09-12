@@ -24,7 +24,7 @@
 #include<int_coding.h>
 
 // #define FRAGMENT_HEADER_LEN (sizeof(net_msg_t) + sizeof(packet_id_t) + sizeof(frag_id_t) + sizeof(frag_id_t) + sizeof(size_t))
-#define FRAGMENT_HEADER_LEN (1 + 2 + 2 + 2 + 4)
+#define FRAGMENT_HEADER_LEN (1 + 2 + 2 + 2 + 1 + 4)
 
 /* PREV
 int8_t fragment_init(struct fragment * f, const struct nodeID * from, const struct nodeID * to, packet_id_t pid, frag_id_t frag_num, frag_id_t id, const uint8_t * data, size_t data_size, struct list_head * list)
@@ -52,6 +52,28 @@ int8_t fragment_init(struct fragment * f, const struct nodeID * from, const stru
 
 	return res;
 } */
+
+/* TEMP */
+
+static inline void int8_cpy(uint8_t *p, uint8_t v)
+{
+  uint8_t tmp;
+
+  tmp = htons(v);
+  memcpy(p, &tmp, 1);
+}
+
+
+static inline uint8_t int8_rcpy(const uint8_t *p)
+{
+  uint8_t tmp;
+
+  memcpy(&tmp, p, 1);
+  tmp = ntohs(tmp);
+  return tmp;
+}
+
+/* ------------------ */
 
 int8_t fragment_init(struct fragment * f, const struct nodeID * from, const struct nodeID * to, packet_id_t pid, frag_id_t frag_num, frag_id_t id, frag_type type, const uint8_t * data, size_t data_size, struct list_head * list)
 {
@@ -175,3 +197,5 @@ struct fragment * fragment_decode(const struct nodeID *dst, const struct nodeID 
 
 	return msg;
 }
+
+
