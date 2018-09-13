@@ -152,19 +152,6 @@ int8_t network_manager_enqueue_outgoing_packet_reliable(struct network_manager *
 	return res;
 }
 
-int8_t network_manager_enqueue_outgoing_ack(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, packet_id_t pid, frag_id_t fid) 
-{
-	// ?
-	struct frag_ack *new_ack;
-	struct list_head *head;
-	INIT_LIST_HEAD(head);
-	new_ack = frag_ack_create(src, dst, pid, fid, head);
-
-	list_splice(head, &(nm->outqueue));
-	free(head);
-}
-
-
 struct net_msg * network_manager_pop_outgoing_net_msg(struct network_manager *nm)
 {
 	struct net_msg * m = NULL;

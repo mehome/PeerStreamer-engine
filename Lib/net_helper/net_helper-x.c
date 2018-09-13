@@ -338,7 +338,13 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				if(((struct fragment *)msg)->type == FRAGMENT_TYPE_RELIABLE)
 				{
 					//SEND ACK
-					network_manager_enqueue_outgoing_ack(local->nm, local, node, ((struct fragment *)msg)->pid, ((struct fragment *)msg)->id);
+					struct frag_ack *new_ack;
+					new_ack = frag_ack_create(local, node, ((struct fragment *)msg)->pid, ((struct fragment *)msg)->id);
+					if(new_ack)
+					{
+						net_helper_send_msg(node, new_ack);
+						//frag_ack_destroy(new_ack);
+					}					
 				}
 
 				fragment_deinit((struct fragment *) msg);
