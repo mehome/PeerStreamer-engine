@@ -23,6 +23,10 @@
 #include<packet_bucket.h>
 #include<fragment.h>
 
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
 struct endpoint {  // do not move node parameter
 	struct nodeID * node;
 	struct packet_bucket * incoming;
@@ -34,15 +38,7 @@ struct list_head * endpoint_enqueue_outgoing_packet(struct endpoint * e, const s
 {
 	struct list_head * res = NULL;
 	if (e && src && data && data_len > 0)
-		res = packet_bucket_add_packet_normal(e->outgoing, src, e->node, e->out_id++, data, data_len);
-	return res;
-}
-
-struct list_head * endpoint_enqueue_outgoing_packet_reliable(struct endpoint * e, const struct nodeID * src, const uint8_t * data, size_t data_len)
-{
-	struct list_head * res = NULL;
-	if (e && src && data && data_len > 0)
-		res = packet_bucket_add_packet_reliable(e->outgoing, src, e->node, e->out_id++, data, data_len);
+		res = packet_bucket_add_packet(e->outgoing, src, e->node, e->out_id++, data, data_len);
 	return res;
 }
 
@@ -81,6 +77,11 @@ int8_t endpoint_cmp(const void * e1, const void *e2)
 	return 0;
 }
 
+struct nodeID * endpoint_get_node(struct endpoint * e)
+{
+	return e->node;
+}
+
 packet_state_t endpoint_add_incoming_fragment(struct endpoint * e, const struct fragment *f, struct list_head * requests)
 {
 	return packet_bucket_add_fragment(e->incoming, f, requests);
@@ -94,4 +95,33 @@ int8_t endpoint_pop_incoming_packet(struct endpoint *e, packet_id_t pid, uint8_t
 struct fragment * endpoint_get_outgoing_fragment(struct endpoint *e, packet_id_t pid, frag_id_t fid)
 {
 	return packet_bucket_get_fragment(e->outgoing, pid, fid);
+}
+
+int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * src, size_t frag_size, const uint8_t * data, size_t data_len)
+{
+	int8_t res = -1;
+
+	int frag_num;
+	frag_type type = FRAGMENT_TYPE_RELIABLE;
+
+	if(e && src && data && data_len > 0)
+	{
+		if (!frag_size)
+			frag_size = data_len;
+		frag_num = data_len/frag_size;
+		if (data_len % frag_size)
+			frag_num++;
+		for(int i = 0; i < frag_num; i++)
+		{
+			struct fragment *newFragment;
+			int8_t res = fragment_init(newFragment, src, e->node, e->out_id, frag_num, i, type, data+(i*frag_size), MIN(frag_size, data_len), NULL);
+			data_len -= frag_size;
+			
+			if(res == 0)
+				net_helper_send_msg(src, (struct net_msg *)newFragment );
+		}
+		res = 0;
+	}
+
+	return res;
 }

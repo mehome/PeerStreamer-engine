@@ -126,13 +126,12 @@ int8_t network_manager_enqueue_outgoing_packet(struct network_manager *nm, const
 	return res;
 }
 
-int8_t network_manager_enqueue_outgoing_packet_reliable(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, const uint8_t * data, size_t data_len)
+int8_t network_manager_send_packet_reliable(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, const uint8_t * data, size_t data_len)
 {
 	int8_t res = -1;
 	struct endpoint * e;
-	struct list_head * frag_list;
 
-	if (nm && dst && data && data_len > 0)
+	if(nm && dst && data && data_len > 0)
 	{
 		e = ord_set_find(nm->endpoints, &dst);
 		if (!e)
@@ -140,16 +139,34 @@ int8_t network_manager_enqueue_outgoing_packet_reliable(struct network_manager *
 			e = endpoint_create(dst, nm->frag_size, nm->max_pkt_age);
 			ord_set_insert(nm->endpoints, (void *)e, 0);
 		}
-		frag_list = endpoint_enqueue_outgoing_packet_reliable(e, src, data, data_len);
-		if (frag_list)
-		{
-			list_splice(frag_list, &(nm->outqueue));
-			free(frag_list);
-			res = 0;
-		}
+		res = endpoint_send_packet_reliable(e, src, nm->frag_size, data, data_len);
 	}
 
 	return res;
+}
+
+int8_t network_manager_send_ack(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, packet_id_t pid, frag_id_t id)
+{
+	/*
+	struct endpoint * e;
+
+	e = ord_set_find(nm->endpoints, &dst);
+	if (!e)
+	{
+		e = endpoint_create(dst, nm->frag_size, nm->max_pkt_age);
+		ord_set_insert(nm->endpoints, (void *)e, 0);
+	}
+	struct frag_ack *new_ack;
+	new_ack = frag_request_create(src, endpoint_get_node(e), pid, id, NULL);
+	if(new_ack)
+	{
+		net_helper_send_msg(src, new_ack);
+		//frag_ack_destroy(new_ack);
+		return 0;
+	}						
+
+	return -1;
+	*/
 }
 
 struct net_msg * network_manager_pop_outgoing_net_msg(struct network_manager *nm)

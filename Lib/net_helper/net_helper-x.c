@@ -56,6 +56,17 @@ struct nodeID {
 	size_t sending_buffer_len;
 };
 
+void printToFile(char *val){
+  FILE *out_file = fopen("netHelperPrint_ack.txt", "a"); 
+  if (out_file == NULL) 
+    {   
+      printf("Error! Could not open file\n"); 
+      exit(-1);
+    } 
+    
+  fprintf(out_file, val); // write to file 
+}
+
 void net_helper_send_msg(struct nodeID *s, struct net_msg * msg)
 {
 	net_msg_send(msg->from->fd, (const struct sockaddr *)&(msg->to->addr), sizeof(struct sockaddr_storage), msg, s->sending_buffer, s->sending_buffer_len);
@@ -282,6 +293,7 @@ void bind_msg_type (uint8_t msgtype)
 {
 }
 
+/*
 int send_to_peer(const struct nodeID *from, const struct nodeID *to, const uint8_t *buffer_ptr, int buffer_size)
 {
 	int8_t res = -1;
@@ -292,16 +304,15 @@ int send_to_peer(const struct nodeID *from, const struct nodeID *to, const uint8
 		network_shaper_update_bitrate(from->shaper, buffer_size);
 	}
 	return res >= 0 ? buffer_size : res;
-}
+} */
 
-int send_to_peer_reliable(const struct nodeID *from, const struct nodeID *to, const uint8_t *buffer_ptr, int buffer_size)
+int send_to_peer(const struct nodeID *from, const struct nodeID *to, const uint8_t *buffer_ptr, int buffer_size)
 {
 	int8_t res = -1;
 
 	if (from && from->nm && to && buffer_ptr && buffer_size > 0)
 	{
-		res = network_manager_enqueue_outgoing_packet_reliable(from->nm, from, to, buffer_ptr, buffer_size);
-		network_shaper_update_bitrate(from->shaper, buffer_size);
+		res = network_manager_send_packet_reliable(from->nm, from, to, buffer_ptr, buffer_size);
 	}
 	return res >= 0 ? buffer_size : res;
 }
@@ -335,22 +346,17 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				else
 					res = 0;
 
-				if(((struct fragment *)msg)->type == FRAGMENT_TYPE_RELIABLE)
+				if(((struct fragment *)msg)->type == FRAGMENT_TYPE_NORMAL)
 				{
-					//SEND ACK
-					struct frag_ack *new_ack;
-					new_ack = frag_ack_create(local, node, ((struct fragment *)msg)->pid, ((struct fragment *)msg)->id);
-					if(new_ack)
-					{
-						net_helper_send_msg(node, new_ack);
-						//frag_ack_destroy(new_ack);
-					}					
+					network_manager_send_ack(local->nm, local, node, ((struct fragment *)msg)->pid, ((struct fragment *)msg)->id);
 				}
 
 				fragment_deinit((struct fragment *) msg);
 				free(msg);
 				break;
 			case NET_FRAGMENT_REQ:
+				printToFile("NET_FRAGMENT_REQ \n");
+
 				network_manager_enqueue_outgoing_fragment(local->nm, node, ((struct frag_request *)msg)->pid,
 					((struct frag_request *)msg)->id);
 				res = 0;
@@ -358,6 +364,7 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				break;
 
 			case NET_FRAGMENT_ACK:
+				printToFile("NET_FRAGMENT_ACK \n");
 				frag_ack_destroy((struct frag_ack **)&msg);
 				break;
 			default:
