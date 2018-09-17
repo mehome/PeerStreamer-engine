@@ -145,28 +145,23 @@ int8_t network_manager_send_packet_reliable(struct network_manager *nm, const st
 	return res;
 }
 
-int8_t network_manager_send_ack(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, packet_id_t pid, frag_id_t id)
+int8_t network_manager_send_ack(struct network_manager *nm, struct nodeID *src, const struct nodeID * dst, packet_id_t pid, frag_id_t id)
 {
-	/*
+	int8_t res = -1;
 	struct endpoint * e;
 
-	e = ord_set_find(nm->endpoints, &dst);
-	if (!e)
+	if(nm && src && dst)
 	{
-		e = endpoint_create(dst, nm->frag_size, nm->max_pkt_age);
-		ord_set_insert(nm->endpoints, (void *)e, 0);
+		e = ord_set_find(nm->endpoints, &dst);
+		if (!e)
+		{
+			e = endpoint_create(dst, nm->frag_size, nm->max_pkt_age);
+			ord_set_insert(nm->endpoints, (void *)e, 0);
+		}
+		res = endpoint_send_ack(e, src, pid, id);
 	}
-	struct frag_ack *new_ack;
-	new_ack = frag_request_create(src, endpoint_get_node(e), pid, id, NULL);
-	if(new_ack)
-	{
-		net_helper_send_msg(src, new_ack);
-		//frag_ack_destroy(new_ack);
-		return 0;
-	}						
 
-	return -1;
-	*/
+	return res;
 }
 
 struct net_msg * network_manager_pop_outgoing_net_msg(struct network_manager *nm)

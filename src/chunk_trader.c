@@ -152,7 +152,7 @@ int8_t peer_chunk_send(struct chunk_trader * ct, struct PeerChunk *pairs, int pa
 #endif
 			dprintf("target_peer->id: %d \n", target_peer->id);
 			dprintf("target_chunk->id: %d \n", target_chunk->id);
-			cb_ack_expect(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id, target_peer->id);
+			//cb_ack_expect(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id, target_peer->id);
 			//cb_ack_received(get_chunkbuffer(ct, target_chunk->flow_id), target_chunk->id, target_peer->id); //test
 		} 
 	}

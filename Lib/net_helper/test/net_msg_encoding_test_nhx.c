@@ -4,6 +4,7 @@
 #include<net_msg.h>
 #include<fragment.h>
 #include<frag_request.h>
+#include<frag_ack.h>
 #include<net_helper.h>
 
 
@@ -17,7 +18,7 @@ void fragment_encode_test()
 	src = create_node("10.0.0.1", 6000);
 	dst = create_node("10.0.0.1", 6020);
 
-	fragment_init(&frag, src, dst, 42, 7, 3, FRAGMENT_TYPE_NORMAL, (uint8_t*) "ciao", 5, NULL);
+	fragment_init(&frag, src, dst, 42, 7, 3, FRAGMENT_TYPE_RELIABLE, (uint8_t*) "ciao", 5, NULL);
 	res = fragment_encode(&frag, buff, 100);
 	assert(res == 0);
 	
@@ -27,6 +28,7 @@ void fragment_encode_test()
 	assert(neo->pid == frag.pid);
 	assert(neo->id == frag.id);
 	assert(neo->frag_num == frag.frag_num);
+	assert(neo->type == frag.type);
 	assert(neo->data_size == frag.data_size);
 	assert(neo->data);
 	assert(strcmp((char*)neo->data, "ciao") == 0);
@@ -66,9 +68,37 @@ void frag_request_encode_test()
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
+void frag_ack_encode_test()
+{
+	struct frag_ack *fr, *neo;
+	struct nodeID * src, *dst;
+	uint8_t buff[100];
+	int8_t res;
+
+	src = create_node("10.0.0.1", 6000);
+	dst = create_node("10.0.0.1", 6020);
+
+	fr = frag_ack_create(src, dst, 42, 7, NULL);
+	res = frag_ack_encode(fr, buff, 100);
+	assert(res == 0);
+	
+	neo = frag_ack_decode(dst, src, buff, 100);
+	assert(neo);
+
+	assert(neo->pid == fr->pid);
+	assert(neo->id == fr->id);
+
+	nodeid_free(src);
+	nodeid_free(dst);
+	frag_ack_destroy(&fr);
+	frag_ack_destroy(&neo);
+	fprintf(stderr,"%s successfully passed!\n",__func__);
+}
+
 int main()
 {
 	fragment_encode_test();
 	frag_request_encode_test();
+	frag_ack_encode_test();
 	return 0;
 }

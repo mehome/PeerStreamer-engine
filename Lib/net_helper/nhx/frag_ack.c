@@ -3,6 +3,8 @@
 #include<string.h>
 #include<int_coding.h>
 
+#include <stdio.h>
+
 #define FRAG_ACK_HEADER_LEN (sizeof(net_msg_t) + sizeof(packet_id_t) + sizeof(frag_id_t))
 
 struct frag_ack * frag_ack_create(const struct nodeID * from, const struct nodeID * to, packet_id_t pid, frag_id_t fid, struct list_head * list)
@@ -10,11 +12,18 @@ struct frag_ack * frag_ack_create(const struct nodeID * from, const struct nodeI
     struct frag_ack * fr;
 
 	fr = malloc(sizeof(struct frag_ack));
-	net_msg_init((struct net_msg *) fr, NET_FRAGMENT_ACK, from, to, list);
-	fr->pid = pid;
-	fr->id = fid;
+	
+	int8_t res;
+	res = net_msg_init((struct net_msg *) fr, NET_FRAGMENT_ACK, from, to, list);
+	if(res == 0)
+	{
+		fr->pid = pid;
+		fr->id = fid;
 
-	return fr;
+		return fr;
+	}
+	
+	return NULL;
 }
 
 void frag_ack_destroy(struct frag_ack ** fr)

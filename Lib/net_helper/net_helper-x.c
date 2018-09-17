@@ -57,7 +57,7 @@ struct nodeID {
 };
 
 void printToFile(char *val){
-  FILE *out_file = fopen("netHelperPrint_ack.txt", "a"); 
+  FILE *out_file = fopen("netHelperPrint.txt", "a"); 
   if (out_file == NULL) 
     {   
       printf("Error! Could not open file\n"); 
@@ -293,7 +293,6 @@ void bind_msg_type (uint8_t msgtype)
 {
 }
 
-/*
 int send_to_peer(const struct nodeID *from, const struct nodeID *to, const uint8_t *buffer_ptr, int buffer_size)
 {
 	int8_t res = -1;
@@ -304,9 +303,9 @@ int send_to_peer(const struct nodeID *from, const struct nodeID *to, const uint8
 		network_shaper_update_bitrate(from->shaper, buffer_size);
 	}
 	return res >= 0 ? buffer_size : res;
-} */
+}  
 
-int send_to_peer(const struct nodeID *from, const struct nodeID *to, const uint8_t *buffer_ptr, int buffer_size)
+int send_to_peer_reliable(const struct nodeID *from, const struct nodeID *to, const uint8_t *buffer_ptr, int buffer_size)
 {
 	int8_t res = -1;
 
@@ -346,7 +345,7 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				else
 					res = 0;
 
-				if(((struct fragment *)msg)->type == FRAGMENT_TYPE_NORMAL)
+				if(((struct fragment *)msg)->type == FRAGMENT_TYPE_RELIABLE)
 				{
 					network_manager_send_ack(local->nm, local, node, ((struct fragment *)msg)->pid, ((struct fragment *)msg)->id);
 				}

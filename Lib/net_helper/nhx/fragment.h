@@ -29,7 +29,7 @@ typedef uint16_t packet_id_t;
 //typedef enum fragment_type {FRAGMENT_TYPE_NORMAL, FRAGMENT_TYPE_RELIABLE} Fragment_type;
 #define FRAGMENT_TYPE_NORMAL 0
 #define FRAGMENT_TYPE_RELIABLE 1
-typedef uint8_t frag_type;
+typedef uint16_t frag_type;
 
 struct fragment {  // extends net_msg, do not move nm parameter
 	struct net_msg nm;

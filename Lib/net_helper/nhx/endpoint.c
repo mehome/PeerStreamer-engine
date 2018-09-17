@@ -22,6 +22,7 @@
 #include<net_helper.h>
 #include<packet_bucket.h>
 #include<fragment.h>
+#include<frag_ack.h>
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -113,14 +114,35 @@ int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * 
 			frag_num++;
 		for(int i = 0; i < frag_num; i++)
 		{
-			struct fragment *newFragment;
-			int8_t res = fragment_init(newFragment, src, e->node, e->out_id, frag_num, i, type, data+(i*frag_size), MIN(frag_size, data_len), NULL);
-			data_len -= frag_size;
+			struct fragment *newFragment = malloc(sizeof(struct fragment));
+			int8_t res = fragment_init(newFragment, src, e->node, e->out_id, frag_num, i, type, data+(i*frag_size), MIN(frag_size, data_len-(i*frag_size)), NULL);
 			
 			if(res == 0)
 				net_helper_send_msg(src, (struct net_msg *)newFragment );
+
+			fragment_deinit(newFragment);
+			free(newFragment);
 		}
-		res = 0;
+		res = data_len;
+	}
+
+	return res;
+}
+
+int8_t endpoint_send_ack(struct endpoint *e, const struct nodeID *src, packet_id_t pid, frag_id_t id)
+{
+	int8_t res = -1;
+
+	if(e && src)
+	{
+		struct frag_ack *newAck;
+		newAck = frag_ack_create(src, e->node, pid, id, NULL);
+		if(newAck){
+			net_helper_send_msg(src, (struct net_msg *) newAck);
+			res = 0;
+
+			frag_ack_destroy(&newAck);
+		}		
 	}
 
 	return res;
