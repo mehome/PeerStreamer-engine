@@ -26,6 +26,8 @@
 #include<frag_request.h>
 #include<frag_ack.h>
 
+#include <stdio.h>
+
 #define DEFAULT_PKT_MAX_AGE 4
 
 
@@ -145,7 +147,7 @@ int8_t network_manager_send_packet_reliable(struct network_manager *nm, const st
 	return res;
 }
 
-int8_t network_manager_send_ack(struct network_manager *nm, struct nodeID *src, const struct nodeID * dst, packet_id_t pid, frag_id_t id)
+int8_t network_manager_send_ack(struct network_manager *nm, const struct nodeID *src, const struct nodeID * dst, packet_id_t pid, frag_id_t id)
 {
 	int8_t res = -1;
 	struct endpoint * e;
@@ -163,6 +165,26 @@ int8_t network_manager_send_ack(struct network_manager *nm, struct nodeID *src, 
 
 	return res;
 }
+
+int8_t network_manager_receive_ack(struct network_manager *nm, const struct nodeID *from, packet_id_t pid, frag_id_t id)
+{
+	int8_t res = -1;
+	struct endpoint * e;
+
+	if(nm && from)
+	{
+		e = ord_set_find(nm->endpoints, &from);
+		if (!e)
+		{
+			e = endpoint_create(from, nm->frag_size, nm->max_pkt_age);
+			ord_set_insert(nm->endpoints, (void *)e, 0);
+		}
+		res = endpoint_receive_ack(e, pid, id);
+	}
+
+	return res;
+}
+
 
 struct net_msg * network_manager_pop_outgoing_net_msg(struct network_manager *nm)
 {

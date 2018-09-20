@@ -45,6 +45,7 @@
 #include<net_msg.h>
 #include<fragment.h>
 #include<frag_request.h>
+#include<frag_ack.h>
 
 struct nodeID {
 	struct sockaddr_storage addr;
@@ -303,7 +304,7 @@ int send_to_peer(const struct nodeID *from, const struct nodeID *to, const uint8
 		network_shaper_update_bitrate(from->shaper, buffer_size);
 	}
 	return res >= 0 ? buffer_size : res;
-}  
+} 
 
 int send_to_peer_reliable(const struct nodeID *from, const struct nodeID *to, const uint8_t *buffer_ptr, int buffer_size)
 {
@@ -354,8 +355,6 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				free(msg);
 				break;
 			case NET_FRAGMENT_REQ:
-				printToFile("NET_FRAGMENT_REQ \n");
-
 				network_manager_enqueue_outgoing_fragment(local->nm, node, ((struct frag_request *)msg)->pid,
 					((struct frag_request *)msg)->id);
 				res = 0;
@@ -364,6 +363,9 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 
 			case NET_FRAGMENT_ACK:
 				printToFile("NET_FRAGMENT_ACK \n");
+
+				network_manager_receive_ack(local->nm, node, ((struct frag_ack *)msg)->pid, ((struct frag_ack *)msg)->id);
+
 				frag_ack_destroy((struct frag_ack **)&msg);
 				break;
 			default:

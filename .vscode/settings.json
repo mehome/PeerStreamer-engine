@@ -9,6 +9,8 @@
         "fragmented_packet.h": "c",
         "packet_bucket.h": "c",
         "network_manager.h": "c",
-        "endpoint.h": "c"
+        "endpoint.h": "c",
+        "ack_waiting.h": "c",
+        "ord_set.h": "c"
     }
 }

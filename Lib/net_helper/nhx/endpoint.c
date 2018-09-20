@@ -23,16 +23,25 @@
 #include<packet_bucket.h>
 #include<fragment.h>
 #include<frag_ack.h>
+#include<ack_waiting.h>
+#include<ord_set.h>
+
+#include <stdio.h>
+
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
+
+#define WAITING_ACKS_DEFAULT_SIZE 10
+#define ACK_WAITING_TIME 10
 
 struct endpoint {  // do not move node parameter
 	struct nodeID * node;
 	struct packet_bucket * incoming;
 	struct packet_bucket * outgoing;
 	packet_id_t out_id;
+	struct ord_set * waiting_acks;
 };
 
 struct list_head * endpoint_enqueue_outgoing_packet(struct endpoint * e, const struct nodeID * src, const uint8_t * data, size_t data_len)
@@ -52,6 +61,7 @@ struct endpoint * endpoint_create(const struct nodeID * node, size_t frag_size, 
 		e->node = nodeid_dup(node);
 		e->incoming = packet_bucket_create(frag_size, max_pkt_age);
 		e->outgoing = packet_bucket_create(frag_size, max_pkt_age);
+		e->waiting_acks = ord_set_new(WAITING_ACKS_DEFAULT_SIZE, ack_waiting_cmp);
 		e->out_id = 0;
 	}
 	return e;
@@ -64,6 +74,7 @@ void endpoint_destroy(struct endpoint ** e)
 		packet_bucket_destroy(&(*e)->incoming);
 		packet_bucket_destroy(&(*e)->outgoing);
 		nodeid_free((*e)->node);
+		ord_set_destroy(&((*e)->waiting_acks), 1);
 		free(*e);
 		*e = NULL;
 	}
@@ -98,6 +109,46 @@ struct fragment * endpoint_get_outgoing_fragment(struct endpoint *e, packet_id_t
 	return packet_bucket_get_fragment(e->outgoing, pid, fid);
 }
 
+void endpoint_push_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid, int send_time)
+{
+	fprintf(stderr, "endpoint_push_waiting_ack \n");
+	struct ack_waiting *newAW;
+	newAW = (struct ack_waiting *)ack_waiting_create(pid, fid, send_time);
+	ord_set_insert(e->waiting_acks, (void *)newAW, 1);
+}
+
+int8_t endpoint_remove_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid)
+{
+	fprintf(stderr, "endpoint_remove_waiting_ack \n");
+	int8_t res = -1;
+	struct ack_waiting *i = NULL;
+	do
+	{
+		i = (struct ack_waiting *)ord_set_iter(e->waiting_acks, (void *)i);
+		if(i->pid == pid && i->fid == fid)
+		{
+			res = ord_set_remove(e->waiting_acks, i, 1);
+			i = NULL;
+			res = 0;
+		}
+	}while(i);
+
+	return res;
+}
+
+struct ack_waiting * endpoint_pop_waiting_ack(struct endpoint *e, int time)
+{
+	fprintf(stderr, "endpoint_pop_waiting_ack \n");
+	struct ack_waiting *fAW;
+	fAW = ord_set_iter(e->waiting_acks, NULL);
+	if(fAW->send_time + ACK_WAITING_TIME > time)
+		fAW = NULL;
+	else	
+		ord_set_remove(e->waiting_acks, fAW, 0);
+
+	return fAW;
+}
+
 int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * src, size_t frag_size, const uint8_t * data, size_t data_len)
 {
 	int8_t res = -1;
@@ -112,13 +163,20 @@ int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * 
 		frag_num = data_len/frag_size;
 		if (data_len % frag_size)
 			frag_num++;
+
+		e->out_id++;
+		
 		for(int i = 0; i < frag_num; i++)
 		{
 			struct fragment *newFragment = malloc(sizeof(struct fragment));
 			int8_t res = fragment_init(newFragment, src, e->node, e->out_id, frag_num, i, type, data+(i*frag_size), MIN(frag_size, data_len-(i*frag_size)), NULL);
 			
-			if(res == 0)
+			if(res == 0){
 				net_helper_send_msg(src, (struct net_msg *)newFragment );
+				int now_time = 999;
+				endpoint_push_waiting_ack(e, e->out_id, i, now_time);
+			}
+				
 
 			fragment_deinit(newFragment);
 			free(newFragment);
@@ -146,4 +204,9 @@ int8_t endpoint_send_ack(struct endpoint *e, const struct nodeID *src, packet_id
 	}
 
 	return res;
+}
+
+int8_t endpoint_receive_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid)
+{
+	return endpoint_remove_waiting_ack(e, pid, fid);
 }
