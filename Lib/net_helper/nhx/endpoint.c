@@ -26,8 +26,6 @@
 #include<ack_waiting.h>
 #include<ord_set.h>
 
-#include <stdio.h>
-
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -109,7 +107,7 @@ struct fragment * endpoint_get_outgoing_fragment(struct endpoint *e, packet_id_t
 	return packet_bucket_get_fragment(e->outgoing, pid, fid);
 }
 
-void endpoint_push_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid, int send_time)
+void endpoint_push_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid, struct timeval send_time)
 {
 	fprintf(stderr, "endpoint_push_waiting_ack \n");
 	struct ack_waiting *newAW;
@@ -125,8 +123,8 @@ int8_t endpoint_remove_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_
 	do
 	{
 		i = (struct ack_waiting *)ord_set_iter(e->waiting_acks, (void *)i);
-		if(i->pid == pid && i->fid == fid)
-		{
+		if(i && i->pid == pid && i->fid == fid)
+		{			
 			res = ord_set_remove(e->waiting_acks, i, 1);
 			i = NULL;
 			res = 0;
@@ -136,12 +134,17 @@ int8_t endpoint_remove_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_
 	return res;
 }
 
-struct ack_waiting * endpoint_pop_waiting_ack(struct endpoint *e, int time)
+struct ack_waiting * endpoint_pop_waiting_ack(struct endpoint *e, struct timeval now)
 {
 	fprintf(stderr, "endpoint_pop_waiting_ack \n");
 	struct ack_waiting *fAW;
 	fAW = ord_set_iter(e->waiting_acks, NULL);
-	if(fAW->send_time + ACK_WAITING_TIME > time)
+
+	struct timeval waitTime;
+	waitTime.tv_sec = ACK_WAITING_TIME;
+	struct timeval expireTime;
+	timeradd(&(fAW->send_time), &waitTime, &expireTime);
+	if(timercmp(&expireTime, &now, >))
 		fAW = NULL;
 	else	
 		ord_set_remove(e->waiting_acks, fAW, 0);
@@ -173,7 +176,8 @@ int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * 
 			
 			if(res == 0){
 				net_helper_send_msg(src, (struct net_msg *)newFragment );
-				int now_time = 999;
+				struct timeval now_time;
+				gettimeofday(&now_time, NULL);
 				endpoint_push_waiting_ack(e, e->out_id, i, now_time);
 			}
 				

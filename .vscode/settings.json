@@ -11,6 +11,8 @@
         "network_manager.h": "c",
         "endpoint.h": "c",
         "ack_waiting.h": "c",
-        "ord_set.h": "c"
+        "ord_set.h": "c",
+        "network_shaper.h": "c",
+        "time.h": "c"
     }
 }

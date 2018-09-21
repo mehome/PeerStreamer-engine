@@ -1,6 +1,6 @@
 #include<ack_waiting.h>
 
-struct ack_waiting * ack_waiting_create(packet_id_t pid, frag_id_t fid, int send_time)
+struct ack_waiting * ack_waiting_create(packet_id_t pid, frag_id_t fid, struct timeval send_time)
 {
     struct ack_waiting * n;
     n = malloc(sizeof(struct ack_waiting));
@@ -25,7 +25,7 @@ int8_t ack_waiting_cmp(const void * pt1, const void *pt2)
         struct ack_waiting * aw1 = (struct ack_waiting *)pt1;
         struct ack_waiting * aw2 = (struct ack_waiting *)pt2;
 
-        if(aw1->send_time == aw2->send_time) 
+        if(timercmp(&(aw1->send_time), &(aw2->send_time), ==)) 
         {
             if(aw1->pid == aw2->pid)
             {
@@ -45,7 +45,7 @@ int8_t ack_waiting_cmp(const void * pt1, const void *pt2)
         }
         else
         {
-            res = aw1->send_time > aw2->send_time ? 1 : -1; 
+            res = timercmp(&(aw1->send_time), &(aw2->send_time), >); 
         }
         
     }
