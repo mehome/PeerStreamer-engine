@@ -55,4 +55,6 @@ struct fragment * fragment_decode(const struct nodeID *dst, const struct nodeID 
 
 int8_t fragment_encode(struct fragment * frag, uint8_t * buff, size_t buff_len);
 
+int8_t fragment_cpy(struct fragment *new, struct fragment *old);
+
 #endif

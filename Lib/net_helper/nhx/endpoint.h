@@ -26,7 +26,8 @@
 #include<stdint.h>
 #include<stdlib.h>
 #include<fragmented_packet.h>
-
+#include<sys/time.h>
+#include<time.h>
 
 struct endpoint;
 
@@ -47,5 +48,9 @@ struct fragment * endpoint_get_outgoing_fragment(struct endpoint *e, packet_id_t
 int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * src, size_t frag_size, const uint8_t * data, size_t data_len);
 
 int8_t endpoint_receive_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid);
+
+int8_t endpoint_resend_fragment_reliable(struct endpoint *e, const struct nodeID *src);
+
+void endpoint_print_waiting_acks(struct endpoint *e);
 
 #endif

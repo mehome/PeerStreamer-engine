@@ -97,6 +97,16 @@ void net_helper_periodic(struct nodeID *s, struct timeval * interval)
 {
 	if (s && s->shaper && interval)
 		net_helper_send_attempt(s, interval);
+
+
+	/* TEMP */
+	/*
+	if(s)
+	{
+		printToFile("network_manager_resend_fragment_reliable \n");
+		network_manager_resend_fragment_reliable(s->nm, s);
+	}
+	*/
 }
 
 int wait4data(const struct nodeID *s, struct timeval *tout, int *user_fds)

@@ -176,4 +176,26 @@ struct fragment * fragment_decode(const struct nodeID *dst, const struct nodeID 
 	return msg;
 }
 
+int8_t fragment_cpy(struct fragment *new, struct fragment *old)
+{
+	int8_t res = -1;
+	if(new && old)
+	{
+		new->nm = old->nm;
+		new->id = old->id;
+		new->frag_num = old->frag_num;
+		new->pid = old->pid;
+		new->type = old->type;
+		new->data_size = old->data_size;
+
+		int size = sizeof(int8_t) * old->data_size;
+		new->data = malloc(size);
+		memcpy(new->data, old->data, size);
+		
+		res = 0;
+	}
+
+	return res;
+}
+
 

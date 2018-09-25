@@ -185,6 +185,26 @@ int8_t network_manager_receive_ack(struct network_manager *nm, const struct node
 	return res;
 }
 
+int8_t network_manager_resend_fragment_reliable(struct network_manager *nm, const struct nodeID *s)
+{
+	int8_t res = -1;
+
+	if(nm && s)
+	{
+		struct endpoint *e;
+		e = (struct endpoint *)ord_set_iter(nm->endpoints, NULL); 
+		while(e)
+		{
+			res = 0;
+			endpoint_resend_fragment_reliable(e, s);
+
+			e = (struct endpoint *)ord_set_iter(nm->endpoints, (void *)e); 
+		}
+	}	
+
+	return res;
+}
+
 
 struct net_msg * network_manager_pop_outgoing_net_msg(struct network_manager *nm)
 {

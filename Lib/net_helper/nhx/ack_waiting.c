@@ -1,12 +1,12 @@
 #include<ack_waiting.h>
 
-struct ack_waiting * ack_waiting_create(packet_id_t pid, frag_id_t fid, struct timeval send_time)
+struct ack_waiting * ack_waiting_create(struct fragment *frag, struct timeval send_time)
 {
     struct ack_waiting * n;
     n = malloc(sizeof(struct ack_waiting));
 
-    n->fid = fid;
-    n->pid = pid;
+    n->frag = malloc(sizeof(struct fragment));
+    fragment_cpy(n->frag, frag);
     n->send_time = send_time;
 
     return n;
@@ -14,6 +14,8 @@ struct ack_waiting * ack_waiting_create(packet_id_t pid, frag_id_t fid, struct t
 
 void ack_waiting_destroy(struct ack_waiting * aw)
 {
+    fragment_deinit(aw->frag);
+    free(aw->frag);
     free(aw);
 }
 
@@ -27,25 +29,25 @@ int8_t ack_waiting_cmp(const void * pt1, const void *pt2)
 
         if(timercmp(&(aw1->send_time), &(aw2->send_time), ==)) 
         {
-            if(aw1->pid == aw2->pid)
+            if(aw1->frag->pid == aw2->frag->pid)
             {
-                if(aw1->fid == aw2->fid)
+                if(aw1->frag->id == aw2->frag->id)
                 {
                     res = 0;
                 }
                 else
                 {
-                    res = aw1->fid > aw2->fid ? 1 : -1; 
+                    res = aw1->frag->id > aw2->frag->id ? 1 : -1; 
                 }
             }
             else
             {
-                res = aw1->pid > aw2->pid ? 1 : -1; 
+                res = aw1->frag->pid > aw2->frag->pid ? 1 : -1; 
             }
         }
         else
         {
-            res = timercmp(&(aw1->send_time), &(aw2->send_time), >); 
+            res = timercmp(&(aw1->send_time), &(aw2->send_time), >) ? 1 : -1; 
         }
         
     }
