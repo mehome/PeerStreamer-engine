@@ -9,8 +9,8 @@
 #include<ack_waiting.h>
 #include<ord_set.h>
 
-int main()
-{   
+void test_waiting_acks()
+{
     struct nodeID *n1, *n2;
 
     char msg[] = "ciao";
@@ -54,7 +54,7 @@ int main()
 
     fprintf(stderr, "test superato! \n");
 
-    //endpoint_remove_waiting_ack(e1, 0, 0);
+    endpoint_remove_waiting_ack(e1, 0, 0);
     endpoint_remove_waiting_ack(e1, 1, 1);
 
     fprintf(stderr, "test superato! \n"); 
@@ -74,5 +74,12 @@ int main()
 
     fprintf(stderr, "test superato! \n");
 
+}
+
+int main()
+{   
+    test_waiting_acks();
+
+    
     return 0;
 }

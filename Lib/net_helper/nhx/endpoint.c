@@ -34,7 +34,7 @@
 #endif
 
 #define WAITING_ACKS_DEFAULT_SIZE 10
-#define ACK_WAITING_TIME 10
+#define ACK_WAITING_TIME 3
 
 struct endpoint {  // do not move node parameter
 	struct nodeID * node;
@@ -113,7 +113,7 @@ void endpoint_push_waiting_ack(struct endpoint *e, struct fragment *frag, struct
 {
 	fprintf(stderr, "endpoint_push_waiting_ack \n");
 	struct ack_waiting *newAW;
-	newAW = (struct ack_waiting *)ack_waiting_create(frag, send_time);
+	newAW = (struct ack_waiting *)ack_waiting_create(frag, send_time); // modificare in ack_waiting_init
 	ord_set_insert(e->waiting_acks, (void *)newAW, 1);
 }
 
@@ -153,7 +153,7 @@ struct ack_waiting * endpoint_pop_waiting_ack(struct endpoint *e, struct timeval
 			struct timeval expireTime;
 			timeradd(&(fAW->send_time), &waitTime, &expireTime);
 
-			if(!timercmp(&expireTime, &now, >))
+			if(!timercmp(&expireTime, &now, >=))
 			{
 				ord_set_remove(e->waiting_acks, (void *)fAW, 0);
 			}
@@ -236,19 +236,23 @@ int8_t endpoint_resend_fragment_reliable(struct endpoint *e, const struct nodeID
 
 	struct timeval now_time;
 	gettimeofday(&now_time, NULL); 
+	struct ack_waiting *aw_next;
 	struct ack_waiting *aw = endpoint_pop_waiting_ack(e, now_time);
 
 	while(aw)
 	{
-		net_helper_send_msg(src, (struct net_msg *)aw);
+		aw_next = endpoint_pop_waiting_ack(e, now_time);
+
+		net_helper_send_msg(src, (struct net_msg *)(aw->frag));
 
 		struct timeval now_time;
 		gettimeofday(&now_time, NULL);
 		endpoint_push_waiting_ack(e, aw->frag, now_time);
+		ack_waiting_destroy(aw);
 
 		res = 0;
 
-		aw = endpoint_pop_waiting_ack(e, now_time);
+		aw = aw_next;
 	}
 
 	return res;
@@ -265,7 +269,7 @@ void endpoint_print_waiting_acks(struct endpoint *e)
 		aw = ord_set_iter(e->waiting_acks, NULL);
 		while(aw)
 		{
-			fprintf(stderr, "pid: %d , id: %d , send_time: %d \n", aw->frag->pid, aw->frag->id,
+			fprintf(stderr, "pid: %d , id: %d , send_time: %lld \n", aw->frag->pid, aw->frag->id,
 				aw->send_time.tv_sec * 1000 + aw->send_time.tv_usec);
 
 			aw = ord_set_iter(e->waiting_acks, aw);
