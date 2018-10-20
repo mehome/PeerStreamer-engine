@@ -5,6 +5,9 @@
 #include<net_helper.h>
 #include<net_helpers.h>
 
+#include<stdio.h>
+#include<stdlib.h>
+
 void create_node_test()
 {
 	struct nodeID * s;
@@ -206,7 +209,7 @@ void send_recv_test()
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
-void send_recv_reliable_test()
+void send_recv_reliable_test_A()
 {
 	struct nodeID * n1, *n2, *r, *r2;
 	char buff[2000];
@@ -217,15 +220,17 @@ void send_recv_reliable_test()
 
 	n1 = net_helper_init("127.0.0.1", 6000, NULL);
 	n2 = net_helper_init("127.0.0.1", 6001, NULL);
-	//send_to_peer_reliable(n1, n2, (uint8_t *)msg, 1601);
-	int res = send_to_peer_reliable(n1, n2, (uint8_t *)msg, 5);
+	
+	send_to_peer_reliable(n1, n2, (uint8_t *)msg, 5);
+
 	net_helper_periodic(n1, &interval);
 
 	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
 
-	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
-
 	assert(strcmp(msg, buff) == 0);
+
+	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000); //Receive ack
+	
 
 	net_helper_deinit(n1);
 	net_helper_deinit(n2);
@@ -233,16 +238,115 @@ void send_recv_reliable_test()
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
+void send_recv_reliable_test_B()
+{
+	struct nodeID * n1, *n2, *r, *r2;
+	char buff[2000];
+	char buff2[2000];
+	char msg[] = "ciao";
+	struct timeval interval;
+
+	n1 = net_helper_init("127.0.0.1", 6000, NULL);
+	n2 = net_helper_init("127.0.0.1", 6001, NULL);
+	
+	send_to_peer_reliable(n1, n2, (uint8_t *)msg, 5);
+
+	fprintf(stderr,"Waiting 3sec ... \n");
+	sleep(3); 
+
+	net_helper_periodic(n1, &interval);
+
+	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+
+	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);	
+	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+
+	net_helper_deinit(n1);
+	net_helper_deinit(n2);
+	nodeid_free(r);
+	nodeid_free(r2);
+	fprintf(stderr,"%s successfully passed!\n",__func__);
+}
+
+void send_recv_reliable_test_C()
+{
+	struct nodeID * n1, *n2, *r, *r2;
+	char buff[2000];
+	char buff2[2000];
+	char msg[] = "ciao";
+	struct timeval interval;
+
+	n1 = net_helper_init("127.0.0.1", 6000, NULL);
+	n2 = net_helper_init("127.0.0.1", 6001, NULL);
+	
+	send_to_peer_reliable(n1, n2, (uint8_t *)msg, 5);
+	send_to_peer_reliable(n2, n1, (uint8_t *)msg, 5);
+
+	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+
+	assert(strcmp(msg, buff) == 0);
+	assert(strcmp(msg, buff2) == 0);
+
+	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);	
+	recv_from_peer(n2, &r, (uint8_t *)buff2, 2000);
+
+	net_helper_deinit(n1);
+	net_helper_deinit(n2);
+	nodeid_free(r);
+	nodeid_free(r2);
+	fprintf(stderr,"%s successfully passed!\n",__func__);
+}
+
+void send_recv_reliable_test_D()
+{
+	struct nodeID * n1, *n2, *r, *r2;
+	char buff[2000];
+	char buff2[2000];
+	char msg1[] = "ciao";
+	char msg2[] = "casa";
+	struct timeval interval;
+
+	n1 = net_helper_init("127.0.0.1", 6000, NULL);
+	n2 = net_helper_init("127.0.0.1", 6001, NULL);
+	
+	send_to_peer_reliable(n1, n2, (uint8_t *)msg1, 5);
+	send_to_peer_reliable(n1, n2, (uint8_t *)msg2, 5);
+
+	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+
+	assert(strcmp(msg1, buff) == 0);
+
+	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+
+	assert(strcmp(msg2, buff) == 0);
+
+	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+
+	net_helper_deinit(n1);
+	net_helper_deinit(n2);
+	nodeid_free(r);
+	nodeid_free(r2);
+	fprintf(stderr,"%s successfully passed!\n",__func__);
+}
+
 int main()
 {
-/*	create_node_test();
+	create_node_test();
 	net_helper_init_test();
 	nodeid_dup_test();
 	nodeid_equal_test();
 	nodeid_cmp_test();
 	node_addr_test();
 	nodeid_dump_test();
-	send_recv_test(); */
-	send_recv_reliable_test();
+	send_recv_test(); 
+
+
+	send_recv_reliable_test_A();
+	//send_recv_reliable_test_B();
+	send_recv_reliable_test_C();
+	send_recv_reliable_test_D();
 	return 0;
 }

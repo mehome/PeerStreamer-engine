@@ -102,8 +102,11 @@ void net_helper_periodic(struct nodeID *s, struct timeval * interval)
 	/* TEMP */
 	if(s)
 	{
-		printToFile("network_manager_resend_fragment_reliable \n");
-		network_manager_resend_fragment_reliable(s->nm, s);
+		int8_t e = network_manager_resend_fragment_reliable(s->nm, s);
+		if(e == 0)
+		{	
+			printToFile("net_helper_periodic \n");
+		}
 	}
 }
 
@@ -338,7 +341,7 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 	len = sizeof(struct sockaddr_storage);
 
 	res = recvfrom(local->fd, buffer_ptr, buffer_size, 0, (struct sockaddr *)&(node->addr), &len);
-	fprintf(stderr, "rec res: %d \n", res);
+	fprintf(stderr, "recv res: %d \n", res);
 	if (res > 0)
 	{
 		msg = net_msg_decode(local, node, buffer_ptr, res);
@@ -359,6 +362,7 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				{
 					int8_t res;
 					res = network_manager_send_ack(local->nm, local, node, ((struct fragment *)msg)->pid, ((struct fragment *)msg)->id);
+					printToFile("network_manager_send_ack \n");
 				}
 
 				fragment_deinit((struct fragment *) msg);
@@ -373,7 +377,7 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 
 			case NET_FRAGMENT_ACK:
 				printToFile("NET_FRAGMENT_ACK \n");
-
+				fprintf(stderr, "ACK: pid: %d, fid: %d \n", ((struct frag_ack *)msg)->pid, ((struct frag_ack *)msg)->id);
 				network_manager_receive_ack(local->nm, node, ((struct frag_ack *)msg)->pid, ((struct frag_ack *)msg)->id);
 
 				frag_ack_destroy((struct frag_ack **)&msg);

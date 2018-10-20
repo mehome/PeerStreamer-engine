@@ -71,6 +71,7 @@ ssize_t frag_ack_send(int sockfd, const struct sockaddr *dest_addr, socklen_t ad
 	{
 		frag_ack_encode(fr, buff, buff_len);
 		
+		fprintf(stderr,"frag_ack_send \n");
 		res = sendto(sockfd, buff, FRAG_ACK_HEADER_LEN, MSG_CONFIRM, dest_addr, addrlen);
 	}
 	return res;
@@ -94,4 +95,3 @@ struct frag_ack * frag_ack_decode(const struct nodeID *dst, const struct nodeID 
 
 	return msg;
 }
-

@@ -189,6 +189,7 @@ int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * 
 			int8_t res = fragment_init(newFragment, src, e->node, e->out_id, frag_num, i, type, data+(i*frag_size), MIN(frag_size, data_len-(i*frag_size)), NULL);
 			
 			if(res == 0){
+				fprintf(stderr, "new frag reliable: pid %d, fid: %d \n", e->out_id, i);
 				net_helper_send_msg(src, (struct net_msg *)newFragment );
 
 				struct timeval now_time;
@@ -215,6 +216,7 @@ int8_t endpoint_send_ack(struct endpoint *e, const struct nodeID *src, packet_id
 		struct frag_ack *newAck;
 		newAck = frag_ack_create(src, e->node, pid, id, NULL);
 		if(newAck){
+			fprintf(stderr, "sending ack ... \n");
 			net_helper_send_msg(src, (struct net_msg *) newAck);
 			res = 0;
 

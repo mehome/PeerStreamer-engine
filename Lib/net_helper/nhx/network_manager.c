@@ -195,8 +195,7 @@ int8_t network_manager_resend_fragment_reliable(struct network_manager *nm, cons
 		e = (struct endpoint *)ord_set_iter(nm->endpoints, NULL); 
 		while(e)
 		{
-			res = 0;
-			endpoint_resend_fragment_reliable(e, s);
+			res = endpoint_resend_fragment_reliable(e, s);
 
 			e = (struct endpoint *)ord_set_iter(nm->endpoints, (void *)e); 
 		}
