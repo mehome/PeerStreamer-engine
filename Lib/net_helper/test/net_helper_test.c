@@ -245,6 +245,7 @@ void send_recv_reliable_test_B()
 	char buff2[2000];
 	char msg[] = "ciao";
 	struct timeval interval;
+	int res;
 
 	n1 = net_helper_init("127.0.0.1", 6000, NULL);
 	n2 = net_helper_init("127.0.0.1", 6001, NULL);
@@ -257,10 +258,20 @@ void send_recv_reliable_test_B()
 	net_helper_periodic(n1, &interval);
 
 	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+
+	assert(strcmp(msg, buff) == 0);
+
 	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
 
-	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);	
-	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+	assert(strcmp(msg, buff) == 0);
+
+	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);	
+
+	assert(res == 5);
+
+	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+
+	assert(res == 5);
 
 	net_helper_deinit(n1);
 	net_helper_deinit(n2);
@@ -276,6 +287,7 @@ void send_recv_reliable_test_C()
 	char buff2[2000];
 	char msg[] = "ciao";
 	struct timeval interval;
+	int res;
 
 	n1 = net_helper_init("127.0.0.1", 6000, NULL);
 	n2 = net_helper_init("127.0.0.1", 6001, NULL);
@@ -289,8 +301,13 @@ void send_recv_reliable_test_C()
 	assert(strcmp(msg, buff) == 0);
 	assert(strcmp(msg, buff2) == 0);
 
-	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);	
-	recv_from_peer(n2, &r, (uint8_t *)buff2, 2000);
+	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);	
+
+	assert(res == 5);
+
+	res = recv_from_peer(n2, &r, (uint8_t *)buff2, 2000);
+
+	assert(res == 5);
 
 	net_helper_deinit(n1);
 	net_helper_deinit(n2);
@@ -307,6 +324,7 @@ void send_recv_reliable_test_D()
 	char msg1[] = "ciao";
 	char msg2[] = "casa";
 	struct timeval interval;
+	int res;
 
 	n1 = net_helper_init("127.0.0.1", 6000, NULL);
 	n2 = net_helper_init("127.0.0.1", 6001, NULL);
@@ -322,8 +340,13 @@ void send_recv_reliable_test_D()
 
 	assert(strcmp(msg2, buff) == 0);
 
-	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
-	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+
+	assert(res == 5);
+
+	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+
+	assert(res == 5);
 
 	net_helper_deinit(n1);
 	net_helper_deinit(n2);
