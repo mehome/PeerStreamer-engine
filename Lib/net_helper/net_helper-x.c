@@ -57,17 +57,6 @@ struct nodeID {
 	size_t sending_buffer_len;
 };
 
-void printToFile(char *val){
-  FILE *out_file = fopen("netHelperPrint.txt", "a"); 
-  if (out_file == NULL) 
-    {   
-      printf("Error! Could not open file\n"); 
-      exit(-1);
-    } 
-    
-  fprintf(out_file, val); // write to file 
-}
-
 void net_helper_send_msg(struct nodeID *s, struct net_msg * msg)
 {
 	net_msg_send(msg->from->fd, (const struct sockaddr *)&(msg->to->addr), sizeof(struct sockaddr_storage), msg, s->sending_buffer, s->sending_buffer_len);
@@ -103,10 +92,6 @@ void net_helper_periodic(struct nodeID *s, struct timeval * interval)
 	if(s)
 	{
 		int8_t e = network_manager_resend_fragment_reliable(s->nm, s);
-		if(e == 0)
-		{	
-			printToFile("net_helper_periodic \n");
-		}
 	}
 }
 
@@ -341,7 +326,6 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 	len = sizeof(struct sockaddr_storage);
 
 	res = recvfrom(local->fd, buffer_ptr, buffer_size, 0, (struct sockaddr *)&(node->addr), &len);
-	fprintf(stderr, "recv res: %d \n", res);
 	if (res > 0)
 	{
 		msg = net_msg_decode(local, node, buffer_ptr, res);
@@ -362,7 +346,6 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				{
 					int8_t res;
 					res = network_manager_send_ack(local->nm, local, node, ((struct fragment *)msg)->pid, ((struct fragment *)msg)->id);
-					printToFile("network_manager_send_ack \n");
 				}
 
 				fragment_deinit((struct fragment *) msg);
@@ -376,10 +359,7 @@ int recv_from_peer(const struct nodeID *local, struct nodeID **remote, uint8_t *
 				break;
 
 			case NET_FRAGMENT_ACK:
-				printToFile("NET_FRAGMENT_ACK \n");
-				fprintf(stderr, "ACK: pid: %d, fid: %d \n", ((struct frag_ack *)msg)->pid, ((struct frag_ack *)msg)->id);
 				network_manager_receive_ack(local->nm, node, ((struct frag_ack *)msg)->pid, ((struct frag_ack *)msg)->id);
-
 				frag_ack_destroy((struct frag_ack **)&msg);
 				break;
 			default:
@@ -417,6 +397,7 @@ struct nodeID *nodeid_dup(const struct nodeID *s)
 	struct nodeID * n;
 
 	n = (struct nodeID *) s;
+
 	if (n)
 		n->occurrences++;
   return n;

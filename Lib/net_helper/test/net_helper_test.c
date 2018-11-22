@@ -209,7 +209,7 @@ void send_recv_test()
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
-void send_recv_reliable_test_A()
+void send_recv_reliable_test_simple()
 {
 	struct nodeID * n1, *n2, *r, *r2;
 	char buff[2000];
@@ -226,19 +226,21 @@ void send_recv_reliable_test_A()
 	net_helper_periodic(n1, &interval);
 
 	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+	nodeid_free(r);
 
 	assert(strcmp(msg, buff) == 0);
 
 	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000); //Receive ack
+	nodeid_free(r2);
 	
 
 	net_helper_deinit(n1);
 	net_helper_deinit(n2);
-	nodeid_free(r);
+	
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
-void send_recv_reliable_test_B()
+void send_recv_reliable_test_simple_wait()
 {
 	struct nodeID * n1, *n2, *r, *r2;
 	char buff[2000];
@@ -258,29 +260,32 @@ void send_recv_reliable_test_B()
 	net_helper_periodic(n1, &interval);
 
 	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+	nodeid_free(r);
 
 	assert(strcmp(msg, buff) == 0);
 
 	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+	nodeid_free(r);
 
 	assert(strcmp(msg, buff) == 0);
 
-	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);	
+	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+	nodeid_free(r2);	
 
 	assert(res == 5);
 
 	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+	nodeid_free(r2);
 
 	assert(res == 5);
 
 	net_helper_deinit(n1);
 	net_helper_deinit(n2);
-	nodeid_free(r);
-	nodeid_free(r2);
+	
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
-void send_recv_reliable_test_C()
+void send_recv_reliable_test_mix()
 {
 	struct nodeID * n1, *n2, *r, *r2;
 	char buff[2000];
@@ -296,27 +301,30 @@ void send_recv_reliable_test_C()
 	send_to_peer_reliable(n2, n1, (uint8_t *)msg, 5);
 
 	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+	nodeid_free(r);
 	recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+	nodeid_free(r2);
 
 	assert(strcmp(msg, buff) == 0);
 	assert(strcmp(msg, buff2) == 0);
 
 	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);	
+	nodeid_free(r2);
 
 	assert(res == 5);
 
 	res = recv_from_peer(n2, &r, (uint8_t *)buff2, 2000);
+	nodeid_free(r);
 
 	assert(res == 5);
 
 	net_helper_deinit(n1);
 	net_helper_deinit(n2);
-	nodeid_free(r);
-	nodeid_free(r2);
+	
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
-void send_recv_reliable_test_D()
+void send_recv_reliable_test_two_send()
 {
 	struct nodeID * n1, *n2, *r, *r2;
 	char buff[2000];
@@ -333,30 +341,34 @@ void send_recv_reliable_test_D()
 	send_to_peer_reliable(n1, n2, (uint8_t *)msg2, 5);
 
 	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+	nodeid_free(r);
 
 	assert(strcmp(msg1, buff) == 0);
 
 	recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+	nodeid_free(r);
 
 	assert(strcmp(msg2, buff) == 0);
 
 	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+	nodeid_free(r2);
 
 	assert(res == 5);
 
 	res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+	nodeid_free(r2);
 
 	assert(res == 5);
 
 	net_helper_deinit(n1);
 	net_helper_deinit(n2);
-	nodeid_free(r);
-	nodeid_free(r2);
+	
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
 int main()
 {
+	/*
 	create_node_test();
 	net_helper_init_test();
 	nodeid_dup_test();
@@ -365,11 +377,11 @@ int main()
 	node_addr_test();
 	nodeid_dump_test();
 	send_recv_test(); 
+	*/
 
-
-	send_recv_reliable_test_A();
-	//send_recv_reliable_test_B();
-	send_recv_reliable_test_C();
-	send_recv_reliable_test_D();
+	send_recv_reliable_test_simple();
+	send_recv_reliable_test_simple_wait();
+	send_recv_reliable_test_mix();
+	send_recv_reliable_test_two_send();
 	return 0;
 }

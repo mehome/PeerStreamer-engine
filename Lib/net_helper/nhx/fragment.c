@@ -22,6 +22,7 @@
 #include<string.h>
 #include<stdio.h>
 #include<int_coding.h>
+#include<net_helper.h>
 
 // #define FRAGMENT_HEADER_LEN (sizeof(net_msg_t) + sizeof(packet_id_t) + sizeof(frag_id_t) + sizeof(frag_id_t) + sizeof(size_t))
 #define FRAGMENT_HEADER_LEN (1 + 2 + 2 + 2 + 2 + 4)
@@ -198,4 +199,26 @@ int8_t fragment_cpy(struct fragment *new, struct fragment *old)
 	return res;
 }
 
+struct fragment * fragment_dup(struct fragment *old)
+{
+	struct fragment *new;
+	if(old)
+	{
+		new = malloc(sizeof(struct fragment));
+		memset(new, 0, sizeof(struct fragment));
 
+		new->nm = old->nm;
+		new->nm.from = nodeid_dup(old->nm.from);
+		new->nm.to = nodeid_dup(old->nm.to);
+		new->id = old->id;
+		new->frag_num = old->frag_num;
+		new->pid = old->pid;
+		new->type = old->type;
+		new->data_size = old->data_size;
+
+		int size = sizeof(int8_t) * old->data_size;
+		new->data = malloc(size);
+		memcpy(new->data, old->data, size);
+	}
+	return new;
+}

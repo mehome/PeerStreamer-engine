@@ -57,4 +57,6 @@ int8_t fragment_encode(struct fragment * frag, uint8_t * buff, size_t buff_len);
 
 int8_t fragment_cpy(struct fragment *new, struct fragment *old);
 
+struct fragment * fragment_dup(struct fragment *old);
+
 #endif

@@ -111,7 +111,6 @@ struct fragment * endpoint_get_outgoing_fragment(struct endpoint *e, packet_id_t
 
 void endpoint_push_waiting_ack(struct endpoint *e, struct fragment *frag, struct timeval send_time)
 {
-	fprintf(stderr, "endpoint_push_waiting_ack \n");
 	struct ack_waiting *newAW;
 	newAW = (struct ack_waiting *)ack_waiting_create(frag, send_time); // modificare in ack_waiting_init
 	ord_set_insert(e->waiting_acks, (void *)newAW, 1);
@@ -119,7 +118,6 @@ void endpoint_push_waiting_ack(struct endpoint *e, struct fragment *frag, struct
 
 int8_t endpoint_remove_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid)
 {
-	fprintf(stderr, "endpoint_remove_waiting_ack \n");
 	int8_t res = -1;
 	struct ack_waiting *i = NULL;
 	do
@@ -138,7 +136,6 @@ int8_t endpoint_remove_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_
 
 struct ack_waiting * endpoint_pop_waiting_ack(struct endpoint *e, struct timeval now)
 {
-	fprintf(stderr, "endpoint_pop_waiting_ack \n");
 	struct ack_waiting *fAW;
 
 	if(e)
@@ -187,9 +184,7 @@ int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * 
 		{
 			struct fragment *newFragment = malloc(sizeof(struct fragment));
 			int8_t res = fragment_init(newFragment, src, e->node, e->out_id, frag_num, i, type, data+(i*frag_size), MIN(frag_size, data_len-(i*frag_size)), NULL);
-			
 			if(res == 0){
-				fprintf(stderr, "new frag reliable: pid %d, fid: %d \n", e->out_id, i);
 				net_helper_send_msg(src, (struct net_msg *)newFragment );
 
 				struct timeval now_time;
@@ -216,7 +211,6 @@ int8_t endpoint_send_ack(struct endpoint *e, const struct nodeID *src, packet_id
 		struct frag_ack *newAck;
 		newAck = frag_ack_create(src, e->node, pid, id, NULL);
 		if(newAck){
-			fprintf(stderr, "sending ack ... \n");
 			net_helper_send_msg(src, (struct net_msg *) newAck);
 			res = 0;
 
@@ -265,8 +259,6 @@ void endpoint_print_waiting_acks(struct endpoint *e)
 {
 	if(e)
 	{
-		fprintf(stderr, "waiting_acks: size: %d \n", ord_set_length(e->waiting_acks));
-
 		struct ack_waiting *aw;
 		aw = ord_set_iter(e->waiting_acks, NULL);
 		while(aw)

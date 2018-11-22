@@ -47,6 +47,8 @@ struct fragment * endpoint_get_outgoing_fragment(struct endpoint *e, packet_id_t
 
 int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * src, size_t frag_size, const uint8_t * data, size_t data_len);
 
+int8_t endpoint_send_ack(struct endpoint *e, const struct nodeID *src, packet_id_t pid, frag_id_t id);
+
 int8_t endpoint_receive_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid);
 
 int8_t endpoint_resend_fragment_reliable(struct endpoint *e, const struct nodeID *src);
