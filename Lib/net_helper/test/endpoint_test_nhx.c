@@ -68,9 +68,19 @@ void test_waiting_acks()
 	tLong.tv_usec = 0;
 
     struct ack_waiting *aw1; 
-    aw1 = endpoint_pop_waiting_ack(e1, tLong);
+    aw1 = (struct ack_waiting *)endpoint_pop_waiting_ack(e1, tLong);
+    ack_waiting_destroy(aw1);
     
     endpoint_print_waiting_acks(e1);
+
+    fragment_deinit(&f1);
+    fragment_deinit(&f2);
+    fragment_deinit(&f3);
+    endpoint_destroy(&e2);
+    endpoint_destroy(&e1);
+
+    nodeid_free(n1);
+    nodeid_free(n2);
 
     fprintf(stderr, "test superato! \n");
 

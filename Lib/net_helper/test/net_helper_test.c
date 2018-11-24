@@ -7,6 +7,7 @@
 
 #include<stdio.h>
 #include<stdlib.h>
+#include <unistd.h>
 
 void create_node_test()
 {
@@ -291,7 +292,6 @@ void send_recv_reliable_test_mix()
 	char buff[2000];
 	char buff2[2000];
 	char msg[] = "ciao";
-	struct timeval interval;
 	int res;
 
 	n1 = net_helper_init("127.0.0.1", 6000, NULL);
@@ -331,7 +331,6 @@ void send_recv_reliable_test_two_send()
 	char buff2[2000];
 	char msg1[] = "ciao";
 	char msg2[] = "casa";
-	struct timeval interval;
 	int res;
 
 	n1 = net_helper_init("127.0.0.1", 6000, NULL);
