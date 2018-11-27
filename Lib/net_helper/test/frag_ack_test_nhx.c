@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include<net_helper.h>
 #include<assert.h>
+#include <string.h>
 
 void test_create_destroy()
 {
@@ -18,8 +19,8 @@ void test_create_destroy()
 
     frag_ack_destroy(&fa);
 
-    net_helper_deinit(n1);
-    net_helper_deinit(n2);
+    nodeid_free(n1);
+    nodeid_free(n2);
 
     fprintf(stderr, "test_create_destroy, OK! \n");
 }
@@ -49,8 +50,8 @@ void test_frag_ack_encode_decode()
 
     assert( memcmp(fa, fa_decoded, sizeof(struct frag_ack)) );
 
-    net_helper_deinit(n1);
-    net_helper_deinit(n2);
+    nodeid_free(n1);
+    nodeid_free(n2);
 
     fprintf(stderr, "test_frag_ack_encode_decode, OK! \n");
 }

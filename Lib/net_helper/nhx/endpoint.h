@@ -55,4 +55,10 @@ int8_t endpoint_resend_fragment_reliable(struct endpoint *e, const struct nodeID
 
 void endpoint_print_waiting_acks(struct endpoint *e);
 
+struct ack_waiting * endpoint_pop_waiting_ack(struct endpoint *e, struct timeval now);
+
+int8_t endpoint_remove_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid);
+
+void endpoint_push_waiting_ack(struct endpoint *e, struct fragment *frag, struct timeval send_time);
+
 #endif

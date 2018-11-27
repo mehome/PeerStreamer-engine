@@ -21,8 +21,8 @@ void test_waiting_acks()
 
     fprintf(stderr, "create_endpoints \n");
     struct endpoint *e1, *e2;
-    e1 = endpoint_create(n1, 256, 100000);
-    e2 = endpoint_create(n2, 256, 100000);
+    e1 = endpoint_create(n1, 256, 10000);
+    e2 = endpoint_create(n2, 256, 10000);
 
     // END INIT
 
