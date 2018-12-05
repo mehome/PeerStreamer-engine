@@ -1,13 +1,14 @@
 #include<ack_waiting.h>
 #include<stdio.h>
 
-struct ack_waiting * ack_waiting_create(struct fragment *frag, struct timeval send_time)
+struct ack_waiting * ack_waiting_create(struct fragment *frag, struct timeval send_time, uint8_t n_resend)
 {
     struct ack_waiting * n;
     n = malloc(sizeof(struct ack_waiting));
 
     n->frag = fragment_dup(frag);
     n->send_time = send_time;
+    n->n_resend = n_resend;
 
     return n;
 }

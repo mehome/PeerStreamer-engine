@@ -34,7 +34,6 @@
 #endif
 
 #define WAITING_ACKS_DEFAULT_SIZE 10
-#define ACK_WAITING_TIME 3
 
 struct endpoint {  // do not move node parameter
 	struct nodeID * node;
@@ -109,10 +108,10 @@ struct fragment * endpoint_get_outgoing_fragment(struct endpoint *e, packet_id_t
 	return packet_bucket_get_fragment(e->outgoing, pid, fid);
 }
 
-void endpoint_push_waiting_ack(struct endpoint *e, struct fragment *frag, struct timeval send_time)
+void endpoint_push_waiting_ack(struct endpoint *e, struct fragment *frag, struct timeval send_time, uint8_t n_resend)
 {
 	struct ack_waiting *newAW;
-	newAW = (struct ack_waiting *)ack_waiting_create(frag, send_time); // modificare in ack_waiting_init
+	newAW = (struct ack_waiting *)ack_waiting_create(frag, send_time, n_resend); // modificare in ack_waiting_init
 	ord_set_insert(e->waiting_acks, (void *)newAW, 1);
 }
 
@@ -189,7 +188,7 @@ int8_t endpoint_send_packet_reliable(struct endpoint * e, const struct nodeID * 
 
 				struct timeval now_time;
 				gettimeofday(&now_time, NULL);
-				endpoint_push_waiting_ack(e, newFragment, now_time);
+				endpoint_push_waiting_ack(e, newFragment, now_time, 0);
 			}
 				
 
@@ -239,11 +238,15 @@ int8_t endpoint_resend_fragment_reliable(struct endpoint *e, const struct nodeID
 	{
 		aw_next = endpoint_pop_waiting_ack(e, now_time);
 
-		net_helper_send_msg(src, (struct net_msg *)(aw->frag));
+		if(aw->n_resend < MAX_FRAGMENT_RESEND)
+		{
+			net_helper_send_msg(src, (struct net_msg *)(aw->frag));
 
-		struct timeval now_time;
-		gettimeofday(&now_time, NULL);
-		endpoint_push_waiting_ack(e, aw->frag, now_time);
+			struct timeval now_time;
+			gettimeofday(&now_time, NULL);
+			endpoint_push_waiting_ack(e, aw->frag, now_time, aw->n_resend + 1);
+		}
+		
 		ack_waiting_destroy(aw);
 
 		res = 0;

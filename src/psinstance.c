@@ -246,6 +246,7 @@ int8_t psinstance_inject_chunk(struct psinstance * ps)
 
 int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_t data_size)
 {
+	struct timeval now;
 	struct chunk * new_chunk;
 	int8_t res = 0;
 
@@ -265,7 +266,10 @@ int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_
 			new_chunk->size = data_size;
 			new_chunk->data = malloc(data_size);
 			memcpy(new_chunk->data, data, data_size);
-			new_chunk->timestamp = 1; //?????
+
+			gettimeofday(&now, NULL);
+
+			new_chunk->timestamp = now.tv_sec * 1000000ULL + now.tv_usec;
 			new_chunk->flow_id = chunk_trader_getDataMyflowid(ps->trader);
 			new_chunk->chunk_type = DATA_TYPE;
 

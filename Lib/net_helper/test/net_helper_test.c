@@ -7,7 +7,8 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include <unistd.h>
+#include<unistd.h>
+#include<endpoint.h>
 
 void create_node_test()
 {
@@ -255,8 +256,8 @@ void send_recv_reliable_test_simple_wait()
 	
 	send_to_peer_reliable(n1, n2, (uint8_t *)msg, 5);
 
-	fprintf(stderr,"Waiting 3sec ... \n");
-	sleep(3); 
+	fprintf(stderr,"Waiting %dsec ... \n", ACK_WAITING_TIME);
+	sleep(ACK_WAITING_TIME); 
 
 	net_helper_periodic(n1, &interval);
 
@@ -365,9 +366,51 @@ void send_recv_reliable_test_two_send()
 	fprintf(stderr,"%s successfully passed!\n",__func__);
 }
 
+void send_recv_reliable_test_max_resend()
+{
+	struct nodeID * n1, *n2, *r, *r2;
+	char buff[2000];
+	char buff2[2000];
+	char msg[] = "ciao";
+	struct timeval interval;
+	int res;
+
+	n1 = net_helper_init("127.0.0.1", 6000, NULL);
+	n2 = net_helper_init("127.0.0.1", 6001, NULL);
+	
+	send_to_peer_reliable(n1, n2, (uint8_t *)msg, 5);
+
+	for(int i=0; i < MAX_FRAGMENT_RESEND; i++) {
+		fprintf(stderr,"Waiting %dsec ... \n", ACK_WAITING_TIME);
+		sleep(ACK_WAITING_TIME); 
+
+		net_helper_periodic(n1, &interval);
+	}
+
+	for(int i=0; i < MAX_FRAGMENT_RESEND+1; i++) {
+		recv_from_peer(n2, &r, (uint8_t *)buff, 2000);
+		nodeid_free(r);
+
+		assert(strcmp(msg, buff) == 0);
+	}
+
+	for(int i=0; i < MAX_FRAGMENT_RESEND+1; i++) {
+		res = recv_from_peer(n1, &r2, (uint8_t *)buff2, 2000);
+		nodeid_free(r2);	
+
+		assert(res == 5);
+	}
+
+	net_helper_deinit(n1);
+	net_helper_deinit(n2);
+	
+	fprintf(stderr,"%s successfully passed!\n",__func__);
+}
+
+
 int main()
 {
-	/*
+	
 	create_node_test();
 	net_helper_init_test();
 	nodeid_dup_test();
@@ -376,11 +419,12 @@ int main()
 	node_addr_test();
 	nodeid_dump_test();
 	send_recv_test(); 
-	*/
-
+	
 	send_recv_reliable_test_simple();
 	send_recv_reliable_test_simple_wait();
 	send_recv_reliable_test_mix();
 	send_recv_reliable_test_two_send();
+	send_recv_reliable_test_max_resend();
+
 	return 0;
 }

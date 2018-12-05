@@ -48,9 +48,9 @@ void test_waiting_acks()
     t3.tv_sec = 1;
 	t3.tv_usec = 0;
 
-    endpoint_push_waiting_ack(e1, &f3, t3);
-    endpoint_push_waiting_ack(e1, &f1, t1);
-    endpoint_push_waiting_ack(e1, &f2, t2);    
+    endpoint_push_waiting_ack(e1, &f3, t3, 0);
+    endpoint_push_waiting_ack(e1, &f1, t1, 0);
+    endpoint_push_waiting_ack(e1, &f2, t2, 0);    
 
     fprintf(stderr, "test superato! \n");
 
@@ -85,11 +85,58 @@ void test_waiting_acks()
     fprintf(stderr, "test superato! \n");
 
 }
+/*
+void test_max_resend()
+{
+    struct nodeID *n1, *n2;
+
+    char msg[] = "ciao";
+
+    fprintf(stderr, "create_nodes \n");
+    n1 = create_node("10.0.0.1", 6000);
+    n2 = create_node("10.0.0.2", 6000);
+
+    fprintf(stderr, "create_endpoints \n");
+    struct endpoint *e1, *e2;
+    e1 = endpoint_create(n1, 256, 10000);
+    e2 = endpoint_create(n2, 256, 10000);
+
+    // END INIT
+
+    fprintf(stderr, "create_fragments \n");
+    struct fragment f1;
+    fragment_init(&f1, n1, n2, 0, 1, 0, FRAGMENT_TYPE_RELIABLE, (uint8_t *)msg, 5, NULL);
+    
+    struct timeval t1;
+    t1.tv_sec = 0;
+	t1.tv_usec = 0;
+
+    endpoint_push_waiting_ack(e1, &f1, t1, 0);
+
+    struct timeval tLong;
+    tLong.tv_sec = 100;
+	tLong.tv_usec = 0;
+
+    struct ack_waiting *aw1; 
+    aw1 = (struct ack_waiting *)endpoint_pop_waiting_ack(e1, tLong);
+    ack_waiting_destroy(aw1);
+    
+    endpoint_print_waiting_acks(e1);
+
+    fragment_deinit(&f1);
+    
+    endpoint_destroy(&e2);
+    endpoint_destroy(&e1);
+
+    nodeid_free(n1);
+    nodeid_free(n2);
+
+    fprintf(stderr, "test superato! \n");
+} */
 
 int main()
 {   
     test_waiting_acks();
-
     
     return 0;
 }

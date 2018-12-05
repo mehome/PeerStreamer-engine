@@ -29,6 +29,9 @@
 #include<sys/time.h>
 #include<time.h>
 
+#define ACK_WAITING_TIME 3
+#define MAX_FRAGMENT_RESEND 3
+
 struct endpoint;
 
 struct endpoint * endpoint_create(const struct nodeID * node, size_t frag_size, uint16_t max_pkt_age);
@@ -59,6 +62,6 @@ struct ack_waiting * endpoint_pop_waiting_ack(struct endpoint *e, struct timeval
 
 int8_t endpoint_remove_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_t fid);
 
-void endpoint_push_waiting_ack(struct endpoint *e, struct fragment *frag, struct timeval send_time);
+void endpoint_push_waiting_ack(struct endpoint *e, struct fragment *frag, struct timeval send_time, uint8_t n_resend);
 
 #endif
