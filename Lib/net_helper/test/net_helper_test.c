@@ -250,14 +250,15 @@ void send_recv_reliable_test_simple_wait()
 	char msg[] = "ciao";
 	struct timeval interval;
 	int res;
+	int ackWaitingTime_sec = (int)(ACK_WAITING_TIME / 1000000ULL);
 
 	n1 = net_helper_init("127.0.0.1", 6000, NULL);
 	n2 = net_helper_init("127.0.0.1", 6001, NULL);
 	
 	send_to_peer_reliable(n1, n2, (uint8_t *)msg, 5);
 
-	fprintf(stderr,"Waiting %dsec ... \n", ACK_WAITING_TIME);
-	sleep(ACK_WAITING_TIME); 
+	fprintf(stderr,"Waiting %dsec ... \n", ackWaitingTime_sec);
+	sleep(ackWaitingTime_sec); 
 
 	net_helper_periodic(n1, &interval);
 
@@ -374,6 +375,7 @@ void send_recv_reliable_test_max_resend()
 	char msg[] = "ciao";
 	struct timeval interval;
 	int res;
+	int ackWaitingTime_sec = (int)(ACK_WAITING_TIME / 1000000ULL);
 
 	n1 = net_helper_init("127.0.0.1", 6000, NULL);
 	n2 = net_helper_init("127.0.0.1", 6001, NULL);
@@ -381,8 +383,8 @@ void send_recv_reliable_test_max_resend()
 	send_to_peer_reliable(n1, n2, (uint8_t *)msg, 5);
 
 	for(int i=0; i < MAX_FRAGMENT_RESEND; i++) {
-		fprintf(stderr,"Waiting %dsec ... \n", ACK_WAITING_TIME);
-		sleep(ACK_WAITING_TIME); 
+		fprintf(stderr,"Waiting %dsec ... \n", ackWaitingTime_sec);
+		sleep(ackWaitingTime_sec); 
 
 		net_helper_periodic(n1, &interval);
 	}

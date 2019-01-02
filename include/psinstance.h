@@ -22,6 +22,7 @@
 #define __PSCONTEXT_H__ 
 
 #include<stdint.h>
+#include<stddef.h>
 
 #define MSG_BUFFSIZE (512 * 1024)
 #define FDSSIZE 16
@@ -46,6 +47,8 @@ int psinstance_port(const struct psinstance *ps);
 int8_t psinstance_send_offer(struct psinstance * ps);
 
 int8_t psinstance_inject_chunk(struct psinstance * ps);
+
+int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_t data_size);
 
 int8_t psinstance_handle_msg(struct psinstance * ps);
 

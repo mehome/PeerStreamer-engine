@@ -36,6 +36,8 @@
 #include<streaming_timers.h>
 #include<pstreamer_event.h>
 
+#include <inttypes.h>
+
 struct psinstance {
 	struct nodeID * my_sock;
 	struct chunk_output * chunk_out;
@@ -261,7 +263,6 @@ int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_
 		
 		if(new_chunk) 
 		{
-			dtprintf("New chunk\n");
 			new_chunk->id = ps->id_data;
 			new_chunk->size = data_size;
 			new_chunk->data = malloc(data_size);
@@ -277,13 +278,9 @@ int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_
 
 			ps->id_data++;
 
-			dtprintf("New chunk ready ok\n");
-
 			if(!chunk_trader_add_chunk(ps->trader, new_chunk))
 			{
-				dtprintf("Chunk added ok\n");
 				chunk_trader_push_chunk(ps->trader, new_chunk, ps->source_multiplicity);
-				dtprintf("Chunk pushed ok\n");
 				free(new_chunk);
 			}
 			else
@@ -326,13 +323,30 @@ int8_t psinstance_handle_msg(struct psinstance * ps)
                                                              buff, len);
                                 if (c)
                                 {
-                                        if (!chunk_trader_add_chunk(ps->trader, c))
-                                        {
-                                                reg_chunk_receive(ps->measure, c);
-                                                output_deliver(ps->chunk_out, c);
-                                                free(c);
-                                        } else
-                                                chunk_destroy(&c);
+									switch(c->chunk_type) {
+										case MEDIA_TYPE:
+												if (!chunk_trader_add_chunk(ps->trader, c))
+												{
+													reg_chunk_receive(ps->measure, c);
+													output_deliver(ps->chunk_out, c);
+													free(c);
+												} else
+													chunk_destroy(&c);
+											break;
+										case DATA_TYPE:
+										{
+												struct timeval now;
+												gettimeofday(&now, NULL);
+
+												char nowString[21];   
+												sprintf(nowString, "%" PRIu64, (uint64_t) (now.tv_sec * 1000000ULL + now.tv_usec));
+												dtprintf("data_msg_recived: s:%s r:%s\n", c->data, nowString); }
+											break;
+										default:
+											dtprintf("Chunk message without type received\n");
+											break;
+									}
+                                       
                                 }
 				res = 2;
 				break;
@@ -374,8 +388,6 @@ int psinstance_poll(struct psinstance *ps, suseconds_t delta)
 			case INJECT_ACTION:
 				dtprintf("Chunk seeding time!\n");
 				psinstance_inject_chunk(ps);
-				uint8_t data = 0;
-				psinstance_inject_data_chunk(ps, &data, sizeof(uint8_t));
 				streaming_timers_update_chunk_time(&ps->timers, ps->chunk_time_interval);
 				break;
 			case PARSE_MSG_ACTION:

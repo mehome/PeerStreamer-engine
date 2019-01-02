@@ -13,6 +13,12 @@
         "ack_waiting.h": "c",
         "ord_set.h": "c",
         "network_shaper.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "psinstance.h": "c",
+        "net_helpers.h": "c",
+        "string.h": "c",
+        "socket.h": "c",
+        "in.h": "c",
+        "netdb.h": "c"
     }
 }

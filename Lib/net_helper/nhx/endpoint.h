@@ -29,7 +29,7 @@
 #include<sys/time.h>
 #include<time.h>
 
-#define ACK_WAITING_TIME 3
+#define ACK_WAITING_TIME 3000000ULL //usec
 #define MAX_FRAGMENT_RESEND 3
 
 struct endpoint;

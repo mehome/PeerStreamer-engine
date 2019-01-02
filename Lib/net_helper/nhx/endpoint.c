@@ -136,17 +136,18 @@ int8_t endpoint_remove_waiting_ack(struct endpoint *e, packet_id_t pid, frag_id_
 struct ack_waiting * endpoint_pop_waiting_ack(struct endpoint *e, struct timeval now)
 {
 	struct ack_waiting *fAW;
+	struct timeval waitTime;
+	struct timeval expireTime;
 
 	if(e)
 	{
 		fAW = (struct ack_waiting *)ord_set_iter(e->waiting_acks, NULL);
 
 		if(fAW)
-		{
-			struct timeval waitTime;
-			waitTime.tv_sec = ACK_WAITING_TIME;
-			waitTime.tv_usec = 0;
-			struct timeval expireTime;
+		{			
+			uint64_t sec = ACK_WAITING_TIME / 1000000ULL;
+			waitTime.tv_sec = sec;
+			waitTime.tv_usec = ACK_WAITING_TIME - 1000000ULL * sec;			
 			timeradd(&(fAW->send_time), &waitTime, &expireTime);
 
 			if(!timercmp(&expireTime, &now, >=))
