@@ -75,6 +75,8 @@ schedChunkID * chunk_buffer_to_idarray(struct chunk_trader * ct, int *n);
 
 struct chunk ** get_chunks_multiple(const struct chunk_trader * ct, int ** num_chunks, int * total);
 
+struct peer ** get_neighbours(const struct chunk_trader * ct, int * n_neighbour);
+
 void cb_print(const struct chunk_trader * ct);
 
 #endif

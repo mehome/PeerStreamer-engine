@@ -149,8 +149,6 @@ int8_t peer_chunk_send(struct chunk_trader * ct, struct PeerChunk *pairs, int pa
 			log_chunk(psinstance_nodeid(ct->ps), target_peer->id, target_chunk, "SENT");
 #endif
 			
-			if (target_chunk->chunk_type == DATA_TYPE)
-  				fprintf(stderr, "data_msg_sent: s:%s \n", target_chunk->data);
 		} 
 	}
 
@@ -699,3 +697,21 @@ void cb_print(const struct chunk_trader * ct)
         }
 }
 
+
+struct peer ** get_neighbours(const struct chunk_trader * ct, int * n_neighbour)
+{
+	struct peerset *pset;
+	int peer_num;
+	struct peer **peers = NULL;
+
+	if (ct)
+	{
+		pset = topology_get_neighbours(psinstance_topology(ct->ps));
+		peer_num = peerset_size(pset);
+		peers = peerset_get_peers(pset);
+		
+		*n_neighbour = peer_num;
+        }
+
+	return peers;
+}

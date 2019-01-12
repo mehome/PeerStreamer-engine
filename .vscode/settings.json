@@ -19,6 +19,8 @@
         "string.h": "c",
         "socket.h": "c",
         "in.h": "c",
-        "netdb.h": "c"
+        "netdb.h": "c",
+        "timer.h": "c",
+        "chunk_trader.h": "c"
     }
 }

@@ -46,6 +46,7 @@ int main()
         char data[31];
         struct timeval now;
         uint64_t epochNow;
+        uint8_t res;
 
         poll(ps1, ps2);
         
@@ -54,14 +55,15 @@ int main()
 
         if(epochNow - epochLastTime > 1000001) {
             epochLastTime = epochNow;
-            i++;        
             sprintf(time_string, "%" PRIu64, epochNow);
             sprintf(data, "%d", i);
 
             strcat(data, ";");
             strcat(data, time_string);
             
-            psinstance_inject_data_chunk(ps1, &data, strlen(data)+1);
+            res = psinstance_inject_data_chunk(ps1, &data, strlen(data)+1);
+            if (res == 0)
+                i++;
         }
 
        if(i > 150) {

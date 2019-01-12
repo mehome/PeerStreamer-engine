@@ -250,6 +250,8 @@ int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_
 {
 	struct timeval now;
 	struct chunk * new_chunk;
+	struct peer ** neighbours;
+	int n_neighbour;
 	int8_t res = 0;
 
 	if (ps)
@@ -278,13 +280,18 @@ int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_
 
 			ps->id_data++;
 
-			if(!chunk_trader_add_chunk(ps->trader, new_chunk))
+			neighbours = get_neighbours(ps->trader, &n_neighbour);
+
+			for (int i = 0; i < n_neighbour; i++)
 			{
-				chunk_trader_push_chunk(ps->trader, new_chunk, ps->source_multiplicity);
-				free(new_chunk);
+				sendChunk(psinstance_nodeid(ps), neighbours[i]->id, new_chunk, 0);
+
+				if (new_chunk->chunk_type == DATA_TYPE)
+  					fprintf(stderr, "data_msg_sent: s:%s \n", new_chunk->data);
 			}
-			else
-				chunk_destroy(&new_chunk);
+
+			if (n_neighbour < 1)
+				res = -1;
 		}
 		else
 			res = -1;
