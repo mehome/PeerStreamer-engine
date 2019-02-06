@@ -35,12 +35,14 @@
 #include<dbg.h>
 #include<streaming_timers.h>
 #include<pstreamer_event.h>
+#include<data_list.h>
 
 #include <inttypes.h>
 
 struct psinstance {
 	struct nodeID * my_sock;
 	struct chunk_output * chunk_out;
+	dataNode_t * data_msg_in;
 	struct measures * measure;
 	struct topology * topology;
 	struct chunk_trader * trader;
@@ -128,8 +130,7 @@ struct psinstance * psinstance_create(const char * config)
                 ps->measure = measures_create(nodeid_static_str(ps->my_sock));
                 ps->topology = topology_create(ps, config);
                 streaming_timers_init(&(ps->timers), ps->chunk_offer_interval);
-                ps->chunk_out = output_create(ps->measure, config);
-                
+                ps->chunk_out = output_create(ps->measure, config);                
                 if(ps->bs_addr)
                 {
                          //Normal peer (not the first)
@@ -178,12 +179,13 @@ void psinstance_destroy(struct psinstance ** ps)
 		if ((*ps)->iface)
 			free((*ps)->iface);
 		if ((*ps)->my_sock)
-			net_helper_deinit((*ps)->my_sock);
+			net_helper_deinit((*ps)->my_sock);		
 		if ((*ps)->input)
 			input_close((*ps)->input);
                 if ((*ps)->bs_addr)
                         free((*ps)->bs_addr);
                 free(*ps);
+
 		*ps = NULL;
 	}
 }
@@ -301,6 +303,25 @@ int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_
 
 }
 
+int8_t psinstance_pop_data_chunk(struct psinstance * ps, uint8_t **data, size_t *data_size) 
+{
+	int8_t retVal = -1;
+	dataVal_t val;
+	val = pop_bottom(&(ps->data_msg_in));
+
+	if(val.size != -1) {
+		retVal = 0;
+
+		*data_size = val.size;
+		*data = malloc(sizeof(uint8_t) * val.size);
+		memcpy(*data, val.data, sizeof(uint8_t) * val.size);
+
+		free(val.data);
+	}	
+
+	return retVal;
+}
+
 int8_t psinstance_handle_msg(struct psinstance * ps)
 	/* WARNING: this is a blocking function on the network socket */
 {
@@ -342,12 +363,13 @@ int8_t psinstance_handle_msg(struct psinstance * ps)
 											break;
 										case DATA_TYPE:
 										{
-												struct timeval now;
-												gettimeofday(&now, NULL);
+											dataVal_t data;
+											data.size = c->size;
+											data.data = malloc(sizeof(uint8_t) * data.size);
+											memcpy(data.data, c->data, sizeof(uint8_t) * data.size);
 
-												char nowString[21];   
-												sprintf(nowString, "%" PRIu64, (uint64_t) (now.tv_sec * 1000000ULL + now.tv_usec));
-												dtprintf("data_msg_recived: s:%s r:%s\n", c->data, nowString); }
+											push(&(ps->data_msg_in), data);
+											}  
 											break;
 										default:
 											dtprintf("Chunk message without type received\n");

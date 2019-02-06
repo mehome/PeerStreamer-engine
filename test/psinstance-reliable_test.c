@@ -64,6 +64,23 @@ int main()
             res = psinstance_inject_data_chunk(ps1, &data, strlen(data)+1);
             if (res == 0)
                 i++;
+
+
+            uint8_t *data = NULL;
+            size_t data_size = 0;
+            int8_t resPop;
+            resPop = psinstance_pop_data_chunk(ps2, &data, &data_size);
+            if(resPop >= 0) {
+                struct timeval now;
+                gettimeofday(&now, NULL);
+
+                char nowString[21];
+                sprintf(nowString, "%" PRIu64, (uint64_t) (now.tv_sec * 1000000ULL + now.tv_usec));
+                fprintf(stderr, "data_msg_recived: s:%s r:%s\n", data, nowString);
+
+                free(data);
+            }
+           
         }
 
        if(i > 150) {

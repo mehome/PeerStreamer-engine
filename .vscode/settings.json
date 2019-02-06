@@ -21,6 +21,7 @@
         "in.h": "c",
         "netdb.h": "c",
         "timer.h": "c",
-        "chunk_trader.h": "c"
+        "chunk_trader.h": "c",
+        "list.h": "c"
     }
 }
