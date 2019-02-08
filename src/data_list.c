@@ -14,6 +14,7 @@ void push(dataNode_t ** head, dataVal_t val)
 
 dataVal_t pop_bottom(dataNode_t ** head)
 {
+    dataNode_t * i;
     dataNode_t * secLast = NULL;
     dataVal_t retval;
     retval.size = -1;
@@ -24,17 +25,23 @@ dataVal_t pop_bottom(dataNode_t ** head)
         return retval;
     }
 
-    while ((*head)->next != NULL) {  
-        secLast = *head;
-        *head = (*head)->next;  
+    i = *head;
+
+    while ((i)->next != NULL) {  
+        secLast = i;
+        i = (i)->next;  
     }  
 
-    retval.size = (*head)->val.size;
-    retval.data = (*head)->val.data;
+    retval.size = (i)->val.size;
+    retval.data = (i)->val.data;
+
     if(secLast)
         secLast->next = NULL;
-    free(*head);
-    *head = secLast;
+
+    free(i);
+
+    if(secLast == NULL)
+        *head = NULL;
 
     return retval;
 }

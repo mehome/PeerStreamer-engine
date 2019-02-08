@@ -287,9 +287,6 @@ int8_t psinstance_inject_data_chunk(struct psinstance * ps, uint8_t *data, size_
 			for (int i = 0; i < n_neighbour; i++)
 			{
 				sendChunk(psinstance_nodeid(ps), neighbours[i]->id, new_chunk, 0);
-
-				if (new_chunk->chunk_type == DATA_TYPE)
-  					fprintf(stderr, "data_msg_sent: s:%s \n", new_chunk->data);
 			}
 
 			if (n_neighbour < 1)
@@ -363,12 +360,21 @@ int8_t psinstance_handle_msg(struct psinstance * ps)
 											break;
 										case DATA_TYPE:
 										{
-											dataVal_t data;
-											data.size = c->size;
-											data.data = malloc(sizeof(uint8_t) * data.size);
-											memcpy(data.data, c->data, sizeof(uint8_t) * data.size);
+											if (!chunk_trader_add_chunk(ps->trader, c))
+											{
+												reg_chunk_receive(ps->measure, c);
 
-											push(&(ps->data_msg_in), data);
+												dataVal_t data;
+												data.size = c->size;
+												data.data = malloc(sizeof(uint8_t) * data.size);
+												memcpy(data.data, c->data, sizeof(uint8_t) * data.size);
+												
+												push(&(ps->data_msg_in), data);
+												
+												free(c);
+											} else
+												chunk_destroy(&c);
+											
 											}  
 											break;
 										default:

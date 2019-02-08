@@ -13,13 +13,11 @@ void leave(int sig) {
 	fprintf(stderr, "Received signal %d, exiting!\n", sig);
 }
 
-void poll(struct psinstance *ps1, struct psinstance *ps2)
+void poll(struct psinstance *ps)
 {
-    psinstance_poll(ps1, 5000000);
-    psinstance_poll(ps2, 5000000);
+    psinstance_poll(ps, 5000000);
 
-    psinstance_network_periodic(ps1);
-    psinstance_network_periodic(ps2);
+    psinstance_network_periodic(ps);
 }
 
 void deinit(struct psinstance *ps1, struct psinstance *ps2)
@@ -35,20 +33,24 @@ int main()
 
     struct psinstance *ps1;
     struct psinstance *ps2;
+    struct psinstance *ps3;
     uint64_t epochLastTime;
 
     ps1 = psinstance_create("port=6666,flow_id=10,base_out=5000,base_in=7000,dechunkiser=rtp_multi,chunkiser=rtp_multi,chunkbuffer_size=8,chunk_size=1000,max_delay_ms=25,iface=lo,source_multiplicity=1");
     ps2 = psinstance_create("port=6667,bs_port=6666,bs_addr=127.0.0.1,flow_id=20,base_out=5100,base_in=7100,dechunkiser=rtp_multi,chunkiser=rtp_multi,chunkbuffer_size=8,chunk_size=1000,max_delay_ms=25,iface=lo,source_multiplicity=1");
+    ps3 = psinstance_create("port=6668,bs_port=6666,bs_addr=127.0.0.1,flow_id=30,base_out=5200,base_in=7200,dechunkiser=rtp_multi,chunkiser=rtp_multi,chunkbuffer_size=8,chunk_size=1000,max_delay_ms=25,iface=lo,source_multiplicity=1");
 
     int i = 0;
-    while(ps1 && ps2 && running) {
+    while(ps1 && ps2 && ps3 && running) {
         char time_string[17];  
         char data[31];
         struct timeval now;
         uint64_t epochNow;
         uint8_t res;
 
-        poll(ps1, ps2);
+        poll(ps1);
+        poll(ps2);
+        poll(ps3);
         
         gettimeofday(&now, NULL);
         epochNow = (uint64_t)(now.tv_sec * 1000000ULL + now.tv_usec);
@@ -62,28 +64,31 @@ int main()
             strcat(data, time_string);
             
             res = psinstance_inject_data_chunk(ps1, &data, strlen(data)+1);
-            if (res == 0)
+  			
+            if (res == 0){
+                fprintf(stderr, "data_msg_sent: s:%s \n", data);
                 i++;
+            }
+        }
 
-
-            uint8_t *data = NULL;
-            size_t data_size = 0;
-            int8_t resPop;
-            resPop = psinstance_pop_data_chunk(ps2, &data, &data_size);
+        uint8_t *dataRec = NULL;
+        size_t dataRec_size = 0;
+        int8_t resPop = 0;
+        while(resPop >= 0)
+        {
+            resPop = psinstance_pop_data_chunk(ps2, &dataRec, &dataRec_size);
             if(resPop >= 0) {
-                struct timeval now;
-                gettimeofday(&now, NULL);
 
                 char nowString[21];
                 sprintf(nowString, "%" PRIu64, (uint64_t) (now.tv_sec * 1000000ULL + now.tv_usec));
-                fprintf(stderr, "data_msg_recived: s:%s r:%s\n", data, nowString);
+                fprintf(stderr, "data_msg_recived: s:%s r:%s\n", dataRec, nowString);
 
-                free(data);
+                free(dataRec);
             }
-           
         }
+        
 
-       if(i > 150) {
+       if(i > 100) {
            running = 0;
        }
     }
