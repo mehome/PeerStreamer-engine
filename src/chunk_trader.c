@@ -527,6 +527,7 @@ int8_t chunk_trader_msg_parse(struct chunk_trader *ct, struct nodeID *from, uint
 				case sig_offer:
 					p = nodeid_to_peer(psinstance_topology(ct->ps), from, 1);
 					chunk_trader_handle_offer(ct, p, cset, max_deliver, trans_id);
+					gettimeofday(peer_bmap_timestamp(p), NULL);
 					break;
 				case sig_accept:
 					chunk_trader_handle_accept(ct, p, cset, max_deliver, trans_id);

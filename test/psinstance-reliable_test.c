@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <inttypes.h>
 #include <sys/time.h>
+#include<sys/types.h> 
 
 int running = 1;
 
@@ -46,8 +47,9 @@ int main()
         char data[31];
         struct timeval now;
         uint64_t epochNow;
+        uint64_t lastEpochNow;
         uint8_t res;
-
+        
         poll(ps1);
         poll(ps2);
         poll(ps3);
@@ -64,7 +66,7 @@ int main()
             strcat(data, time_string);
             
             res = psinstance_inject_data_chunk(ps1, &data, strlen(data)+1);
-  			
+            
             if (res == 0){
                 fprintf(stderr, "data_msg_sent: s:%s \n", data);
                 i++;
@@ -79,21 +81,20 @@ int main()
             resPop = psinstance_pop_data_chunk(ps2, &dataRec, &dataRec_size);
             if(resPop >= 0) {
 
+                gettimeofday(&now, NULL);
+
                 char nowString[21];
                 sprintf(nowString, "%" PRIu64, (uint64_t) (now.tv_sec * 1000000ULL + now.tv_usec));
                 fprintf(stderr, "data_msg_recived: s:%s r:%s\n", dataRec, nowString);
 
                 free(dataRec);
             }
+        }         
+
+        if(i > 500) {
+            running = 0;
         }
-        
-
-       if(i > 100) {
-           running = 0;
-       }
     }
-    
-
 
     return 0;
 }
